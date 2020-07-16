@@ -2,27 +2,40 @@
 #########################################################
 # python
 import os
+import sys
 import traceback
-import time
+import logging
 import threading
-
+import subprocess
+import platform
+import time
 # third-party
 
 # sjva 공용
-from framework import db, scheduler, path_app_root
-from framework.job import Job
+from framework import db, app, path_app_root, path_data
+from framework.logger import get_logger
 from framework.util import Util
 
 # 패키지
-from .plugin import logger, package_name
+from .plugin import package_name, logger
 from .model import ModelSetting
 #########################################################
 
+# path_data = '/app/data'
 
 class Logic(object):
     db_default = { 
         'db_version' : '1',
-        'pb_feed_count' : '30'
+        'auto_start': 'False',
+        'interval': '120',
+        'htm_interval': '360',
+        'htm_last_update': '1970-01-01',
+        'zip': 'True',
+        'dfolder': os.path.join(path_data, package_name),
+        'downlist': '[]',
+        'auth': '[]',
+        'proxy': 'False',
+        'proxy_url': ''
     }
 
     @staticmethod
@@ -43,8 +56,8 @@ class Logic(object):
         try:
             logger.debug('%s plugin_load', package_name)
             Logic.db_init()
-            #if ModelSetting.query.filter_by(key='auto_start').first().value == 'True':
-            #    Logic.scheduler_start()
+            if ModelSetting.query.filter_by(key='auto_start').first().value == 'True':
+                Logic.scheduler_start()
             # 편의를 위해 json 파일 생성
             from plugin import plugin_info
             Util.save_from_dict_to_json(plugin_info, os.path.join(os.path.dirname(__file__), 'info.json'))
@@ -60,10 +73,11 @@ class Logic(object):
             logger.error('Exception:%s', e)
             logger.error(traceback.format_exc())
 
-    """
+    
     @staticmethod
     def scheduler_start():
         try:
+            # TODO: import scheduler
             interval = ModelSetting.query.filter_by(key='interval').first().value
             job = Job(package_name, package_name, interval, Logic.scheduler_function, u"%s 설명" % package_name, False)
             scheduler.add_job_instance(job)
@@ -136,8 +150,64 @@ class Logic(object):
         except Exception as e:
             logger.error('Exception:%s', e)
             logger.error(traceback.format_exc())
+            
+#########################################################
+####################기본 구조 end#########################
+#########################################################
 
-    """
+    @staticmethod
+    def is_installed():
+        try:
+            target = '/usr/bin/gallery-dl'
+            if os.path.exists(target):
+                return True
+            else:
+                return False
+        except Exception as e: 
+            logger.error('Exception:%s', e)
+            logger.error(traceback.format_exc())
 
+    @staticmethod
+    def install():
+        try:
+            def func():
+                #install_path = '/app/data/custom/gallery-dl/bin/install.sh'
+                install_path = '/app/data/plugin/gallery-dl/bin/install.sh'
+                os.chmod(install_path, 777)
 
+                import system
+                commands = [
+                    ['echo', u'잠시만 기다려주세요.'],
+                    [install_path],
+                    ['echo', u'설치가 완료되었습니다.']
+                ]
+                system.SystemLogicCommand.start('설치', commands)
+            t = threading.Thread(target=func, args=())
+            t.setDaemon(True)
+            t.start()
+        except Exception as e:
+            logger.error('Exception: %s', e)
+            logger.error(traceback.format_exc())
 
+    
+    @staticmethod
+    def uninstall():
+        try:
+            def func():
+                #uninstall_path = '/app/data/custom/gallery-dl/bin/uninstall.sh'
+                uninstall_path = '/app/data/plugin/gallery-dl/bin/uninstall.sh'
+                os.chmod(uninstall_path, 777)
+
+                import system
+                commands = [
+                    ['echo', u'잠시만 기다려주세요.'],
+                    [uninstall_path],
+                    ['echo', u'제거가 완료되었습니다.']
+                ]
+                system.SystemLogicCommand.start('제거', commands)
+            t = threading.Thread(target=func, args=())
+            t.setDaemon(True)
+            t.start()
+        except Exception as e:
+            logger.error('Exception: %s', e)
+            logger.error(traceback.format_exc())

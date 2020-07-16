@@ -19,7 +19,20 @@ from framework.util import Util
 # 패키지
 from .plugin import logger, package_name
 from .model import ModelSetting
+
 #########################################################
+try:
+    from fake_useragent import UserAgent
+except:
+    requirements = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'requirements.txt')
+    if os.system('python -m pip install -r %s' % (requirements)) != 0:
+        os.system('wget https://bootstrap.pypa.io/get-pip.py')
+        os.system('python get-pip.py' % python)
+        os.system('python -m pip install -r %s' % (requirements))
+#########################################################
+
+ua = UserAgent(cache=False)
+# use as ua.random || ua.chrome || ua.google || ...
 
 headers = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36',

@@ -23,20 +23,20 @@ from .model import ModelSetting
 blueprint = Blueprint(package_name, package_name, url_prefix='/%s' %  package_name, template_folder=os.path.join(os.path.dirname(__file__), 'templates'))
 
 menu = {
-    'main' : [package_name, 'Podcast RSS Maker'],
+    'main' : [package_name, 'gallery-dl'],
     'sub' : [
-        ['setting', '설정'], ['log', '로그']
+        ['setting', '설정'], ['schedule', '작업'],['request', '요청'], ['queue', '큐'],['list', '목록'], ['log', '로그']
     ],
     'category' : 'service'
 }
 
 plugin_info = {
     'version' : '0.1.0.0',
-    'name' : 'Podcast RSS Maker',
+    'name' : 'gallery-dl',
     'category_name' : 'service',
-    'developer' : 'soju6jan',
-    'description' : 'Podcast 지원',
-    'home' : 'https://github.com/soju6jan/podcast_feed_maker',
+    'developer' : 'lapis',
+    'description' : 'gallery-dl',
+    'home' : 'https://github.com/',
     'more' : '',
 }
 
@@ -59,9 +59,21 @@ def first_menu(sub):
     if sub == 'setting':
         arg = ModelSetting.to_dict()
         arg['package_name']  = package_name
-        arg['tmp_pb_api'] = '%s/%s/api/podbbang/%s' % (SystemModelSetting.get('ddns'), package_name, '12548')
-        if SystemModelSetting.get_bool('auth_use_apikey'):
-            arg['tmp_pb_api'] += '?apikey=%s' % SystemModelSetting.get('auth_apikey')
+        # arg['tmp_pb_api'] = '%s/%s/api/gallery-dl/%s' % (SystemModelSetting.get('ddns'), package_name, '12548')
+        
+        if(Logic.is_installed()):
+            arg['is_installed'] = True
+            try:
+                import subprocess
+                arg['current_version'] = subprocess.check_output('gallery-dl --version', shell=True)
+            except Exception as e:
+                arg['current_version'] = 'internal error: '+e
+        else:
+            arg['is_installed'] = False
+            arg['current_version'] = 'not installed'
+        
+        # if SystemModelSetting.get_bool('auth_use_apikey'):
+        #     arg['tmp_pb_api'] += '?apikey=%s' % SystemModelSetting.get('auth_apikey')
         return render_template('{package_name}_{sub}.html'.format(package_name=package_name, sub=sub), arg=arg)
     elif sub == 'log':
         return render_template('log.html', package=package_name)
@@ -77,6 +89,29 @@ def ajax(sub):
         if sub == 'setting_save':
             ret = ModelSetting.setting_save(request)
             return jsonify(ret)
+        elif sub == 'status':
+            todo = request.form['todo']
+            if todo == 'true':
+                if Logic.current_process is None:
+                    Logic.scheduler_start()
+                    ret = 'execute'
+                else:
+                    ret =  'already_execute'
+            else:
+                if Logic.current_process is None:
+                    ret =  'already_stop'
+                else:
+                    Logic.scheduler_stop()
+                    ret =  'stop'
+            return jsonify(ret)
+        elif sub == 'install':
+            logger.debug('gallery-dl installing...')
+            Logic.install()
+            return jsonify({})
+        elif sub == 'uninstall':
+            logger.debug('gallery-dl uninstalling...')
+            Logic.uninstall()
+            return jsonify({})
     except Exception as e: 
         logger.error('Exception:%s', e)
         logger.error(traceback.format_exc())  
@@ -88,12 +123,12 @@ def ajax(sub):
 @check_api
 def api(sub, sub2):
     try:
-        if sub == 'podbbang':
-            from .logic_normal import LogicNormal
-            return LogicNormal.make_podbbang(sub2)
+        if sub == 'gallery-dl':
+            # from .logic_normal import LogicNormal
+            # return LogicNormal.make_gallery-dl(sub2)
+            pass
         elif sub == 'klive':
-            from .logic_normal import LogicNormal
-            return LogicNormal.make_klive(sub2)
+            pass
     except Exception as e:
         logger.debug('Exception:%s', e)
         logger.debug(traceback.format_exc())
