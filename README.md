@@ -1,1 +1,2 @@
-# podcast_rss_maker
+# gallery-dl for sjva
+미완성...
