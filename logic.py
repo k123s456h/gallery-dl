@@ -32,10 +32,22 @@ class Logic(object):
         'htm_last_update': '1970-01-01',
         'zip': 'True',
         'dfolder': os.path.join(path_data, package_name),
-        'downlist': '[]',
-        'auth': '[]',
-        'proxy': 'False',
-        'proxy_url': ''
+        'downlist': '',
+        'blacklist': '',
+        'all_download': 'False',
+        'gallery-dl_proxy': 'False',
+        'gallery-dl_proxy_url': '',
+        'gallery-dl_limit-rate': 'False',
+        'gallery-dl_limit-rate_value': '',
+        'gallery-dl_retries': 'False',
+        'gallery-dl_retries_value': '',
+        'gallery-dl_sleep': 'False',
+        'gallery-dl_sleep_value': '',
+        'gallery-dl_auth': 'False',
+        'gallery-dl_auth_info': '',
+        'gallery-dl_write-metadata': 'False',
+        'gallery-dl_option': 'False',
+        'gallery-dl_option_value': ''
     }
 
     @staticmethod
@@ -158,28 +170,34 @@ class Logic(object):
     @staticmethod
     def is_installed():
         try:
-            target = '/usr/bin/gallery-dl'
-            if os.path.exists(target):
-                return True
-            else:
-                return False
+            import subprocess
+            subprocess.check_output(['gallery-dl', '--version'])
+            return True
+            # if os.path.exists(target):
+            #     return True
+            # else:
+            #     return False
         except Exception as e: 
-            logger.error('Exception:%s', e)
-            logger.error(traceback.format_exc())
+            return False
+            # logger.error('Exception:%s', e)
+            # logger.error(traceback.format_exc())
 
     @staticmethod
     def install():
         try:
+            logger.debug('bbbbbbbbbbbbbbbbbbbbbbb')
             def func():
+                logger.debug('aaaaaaaaaaaaaaaaaaa')
                 #install_path = '/app/data/custom/gallery-dl/bin/install.sh'
                 install_path = '/app/data/plugin/gallery-dl/bin/install.sh'
                 os.chmod(install_path, 777)
 
                 import system
                 commands = [
-                    ['echo', u'잠시만 기다려주세요.'],
+                    ['msg', u'잠시만 기다려주세요.'],
                     [install_path],
-                    ['echo', u'설치가 완료되었습니다.']
+                    ['msg', u'설치가 완료되었습니다.'],
+                    ['msg', u'새로고침하세요.']
                 ]
                 system.SystemLogicCommand.start('설치', commands)
             t = threading.Thread(target=func, args=())
@@ -200,9 +218,10 @@ class Logic(object):
 
                 import system
                 commands = [
-                    ['echo', u'잠시만 기다려주세요.'],
+                    ['msg', u'잠시만 기다려주세요.'],
                     [uninstall_path],
-                    ['echo', u'제거가 완료되었습니다.']
+                    ['msg', u'제거가 완료되었습니다.'],
+                    ['msg', u'새로고침하세요.']
                 ]
                 system.SystemLogicCommand.start('제거', commands)
             t = threading.Thread(target=func, args=())

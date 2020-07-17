@@ -15,7 +15,7 @@
   <form id='setting' name='setting'>
     <div class="tab-content" id="nav-tabContent">
       {{ macros.m_tab_content_start('normal', true) }}
-        {{ macros.setting_button([['install_btn', '설치/업데이트'], ['uninstall_btn', '삭제']], 'gallery-dl', '현재 버전: '+arg['current_version'] ) }}
+        {{ macros.setting_button([['install_btn', '설치/업데이트'], ['uninstall_btn', '삭제']], 'gallery-dl', '현재 버전: ' + arg['current_version'] ) }}
         {{ macros.m_hr()}}
         {{ macros.info_text_go('github-gallery-dl', '원작자 repo', 'https://github.com/mikf/gallery-dl') }}
       {{ macros.m_tab_content_end() }}
@@ -50,30 +50,28 @@
         </div>
     
         <!-- --username, --password -->
-        {{ macros.setting_checkbox('gallery-dl_auth', '로그인 사용', value=arg['gallery-dl_auth'], desc=['On: 다운로드에 로그인을 사용합니다. 몇몇 사이트에서만 사용']) }}
+        {{ macros.setting_checkbox('gallery-dl_auth', '로그인 사용', value=arg['gallery-dl_auth'], desc=['On: 다운로드에 로그인을 사용합니다.', 
+        'pixiv, nijie, seiga에는 필수.', 
+        'danbooru, e621, exhentai, idolcomplex, instagram, luscious, sankaku, tsumino, twitter에는 선택.']) }}
         <div id="gallery-dl_auth_div" class="collapse">
-          {{ macros.setting_select('gallery-dl_auth_site', '사이트', value=arg['gallery-dl_auth_site'], col='6') }}
-          {{ macros.setting_input_text('gallery-dl_auth_id', '아이디', value=arg['gallery-dl_auth_id'], desc=['아이디']) }}
-          {{ macros.setting_input_text('gallery-dl_auth_pw', '비밀번호', value=arg['gallery-dl_auth_pw'], desc=['비밀번호']) }}
+          {{ macros.setting_input_textarea('gallery-dl_auth_info', '인증정보', value=arg['gallery-dl_auth_info'], desc=['입력 형식: ', "['site1':'['id', 'pw']'], 'site2': '['id', 'pw']', ]"]) }}
         </div>
     
-        <!-- --zip -->
-        {{ macros.setting_checkbox('gallery-dl_use-zip', 'zip 사용', value=arg['gallery-dl_use-zip'], desc=['On: zip으로 압축합니다.']) }}
-    
         <!-- --write-metadata -->
-        {{ macros.setting_checkbox('gallery-dl_write-metadata', 'metadata쓰기', value=arg['gallery-dl_write-metadata'], desc=['On: 다운로드한 폴더에 json파일을 생성합니다.']) }}
+        {{ macros.setting_checkbox('gallery-dl_write-metadata', 'metadata 쓰기', value=arg['gallery-dl_write-metadata'], desc=['On: 다운로드한 폴더에 json파일을 생성합니다.']) }}
     
         <!-- --option -->
         {{ macros.setting_checkbox('gallery-dl_option', '기타 옵션', value=arg['gallery-dl_option'], desc=['On: gallery-dl 기타 옵션을 사용합니다.']) }}
         <div id="gallery-dl_option_div" class="collapse">
-          {{ macros.setting_input_textarea('gallery-dl_option_value', '값', value=arg['gallery-dl_option_value'], desc=['예: extractor.*.filename="({gallery_id})[{artist}][{series}].{title}.{filename}.{extension}"<br>https://github.com/mikf/gallery-dl/blob/master/docs/configuration.rst']) }}
+          {{ macros.setting_input_textarea('gallery-dl_option_value', '값', value=arg['gallery-dl_option_value'], desc=["예:[ 'extractor.*.filename': '({gallery_id})[{artist}][{series}].{title}.{filename}.{extension}',
+            'extractor.*.cookies-update': 'true',  ]", '참고: https://github.com/mikf/gallery-dl/blob/master/docs/configuration.rst', 'bool값은 소문자로 입력.']) }}
         </div>
       {{ macros.m_tab_content_end() }}
 
       
       {{ macros.m_tab_content_start('hitomi', false) }}
         {{ macros.m_hr()}}
-        {{ macros.info_text(hitomisetting, test, value='123', desc=None) }}
+        {{ macros.info_text('hitomi-setting', 'test', value='123', desc=['']) }}
         {{ macros.m_hr()}}
       {{ macros.m_tab_content_end() }}
 
@@ -81,7 +79,7 @@
       {{ macros.m_tab_content_start('auto', false) }}
         {{ macros.setting_global_scheduler_button(arg['scheduler'], arg['is_running']) }}
         {{ macros.setting_input_text('interval', '스케쥴링 실행 정보', value=arg['interval'], col='3', desc=['Inverval(minute 단위)이나 Cron 설정']) }}
-        <!-- {{ macros.setting_input_int('pagecount', '탐색 페이지수', value=arg['pagecount'], min='1', placeholder='1')}} -->
+        {{ macros.setting_input_int('pagecount', '탐색 페이지수', value=arg['pagecount'], min='1', placeholder='1')}}
         {{ macros.setting_checkbox('auto_start', '시작시 자동실행', value=arg['auto_start'], desc='On : 시작시 자동으로 스케쥴러에 등록됩니다.') }}
         {{ macros.setting_input_textarea('downlist', '자동 다운로드 할 만화 이름', value=arg['downlist'], row='5', desc=['구분자 |', '빈칸인 경우 모두 다운로드합니다.']) }}
         {{ macros.setting_input_textarea('blacklist', '다운로드 제외 만화 이름', value=arg['blacklist'], row='3', desc=['구분자 |']) }}
@@ -97,44 +95,51 @@
 </div> <!--전체-->
 
 <script type="text/javascript">
-let package_name = "{{arg['package_name'] }}";
+
+let package_name = "{{ arg['package_name'] }}";
 let is_installed = "{{ arg['is_installed'] }}" ? true : false;
-let current_version =  "{{arg['current_version']}}"
+let current_version =  "{{ arg['current_version'] }}"
 console.log(package_name, is_installed, current_version)
 
 $(document).ready(function(){
 });
 
-$("body").on('click', '#go_btn', function(e){
-  // e.preventDefault();
-  // window.open("https://github.com/mikf/gallery-dl", "_blank");
-});
-
 $("body").on('click', '#install_btn', function (e) {
-    $.ajax({
+  console.log('install button clicked')
+    $.get({
     url: '/' + package_name + '/ajax/install',
-    type: "POST",
-    cache: false,
-    data: {},
-    dataType: "json",
     success: function (data) {
-      command_modal_show('설치')
+      //command_modal_show('설치')
     }
   });
 });
 
 $("body").on('click', '#uninstall_btn', function (e) {
-  $.ajax({
+  $.get({
     url: '/' + package_name + '/ajax/uninstall',
-    type: "POST",
-    cache: false,
-    data: {},
-    dataType: "json",
     success: function (data) {
-      command_modal_show('제거')
+      //command_modal_show('제거')
     }
   });
 });
+
+  // $("body").on('click', '#uninstall_btn', function (e) {
+  //   $.ajax({
+  //     url: '/' + package_name + '/ajax/uninstall',
+  //     type: "POST",
+  //     cache: false,
+  //     data: {},
+  //     dataType: "json",
+  //     success: function (data) {
+  //       command_modal_show('제거')
+  //     }
+  //   });
+  // });
+
+  $('[id^=gallery-dl]').change(function () {
+    console.log(this.id)
+    use_collapse(this.id);
+  });
 
 </script>    
 {% endblock %}

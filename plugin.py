@@ -59,21 +59,21 @@ def first_menu(sub):
     if sub == 'setting':
         arg = ModelSetting.to_dict()
         arg['package_name']  = package_name
-        # arg['tmp_pb_api'] = '%s/%s/api/gallery-dl/%s' % (SystemModelSetting.get('ddns'), package_name, '12548')
+        # arg['tmp_gallery-dl_api'] = '%s/%s/api/gallery-dl/%s' % (SystemModelSetting.get('ddns'), package_name, '12548')
         
         if(Logic.is_installed()):
             arg['is_installed'] = True
             try:
                 import subprocess
-                arg['current_version'] = subprocess.check_output('gallery-dl --version', shell=True)
+                arg['current_version'] = subprocess.check_output(['gallery-dl', '--version']).strip()
             except Exception as e:
-                arg['current_version'] = 'internal error: '+e
+                arg['current_version'] = 'internal error: \n' + str(e)
         else:
             arg['is_installed'] = False
             arg['current_version'] = 'not installed'
         
         # if SystemModelSetting.get_bool('auth_use_apikey'):
-        #     arg['tmp_pb_api'] += '?apikey=%s' % SystemModelSetting.get('auth_apikey')
+        #     arg['tmp_gallery-dl_api'] += '?apikey=%s' % SystemModelSetting.get('auth_apikey')
         return render_template('{package_name}_{sub}.html'.format(package_name=package_name, sub=sub), arg=arg)
     elif sub == 'log':
         return render_template('log.html', package=package_name)
@@ -90,28 +90,28 @@ def ajax(sub):
             ret = ModelSetting.setting_save(request)
             return jsonify(ret)
         elif sub == 'status':
-            todo = request.form['todo']
-            if todo == 'true':
-                if Logic.current_process is None:
-                    Logic.scheduler_start()
-                    ret = 'execute'
-                else:
-                    ret =  'already_execute'
-            else:
-                if Logic.current_process is None:
-                    ret =  'already_stop'
-                else:
-                    Logic.scheduler_stop()
-                    ret =  'stop'
-            return jsonify(ret)
+            # todo = request.form['todo']
+            # if todo == 'true':
+            #     if Logic.current_process is None:
+            #         Logic.scheduler_start()
+            #         ret = 'execute'
+            #     else:
+            #         ret =  'already_execute'
+            # else:
+            #     if Logic.current_process is None:
+            #         ret =  'already_stop'
+            #     else:
+            #         Logic.scheduler_stop()
+            #         ret =  'stop'
+            return jsonify(True)
         elif sub == 'install':
             logger.debug('gallery-dl installing...')
             Logic.install()
-            return jsonify({})
+            return jsonify(True)
         elif sub == 'uninstall':
             logger.debug('gallery-dl uninstalling...')
             Logic.uninstall()
-            return jsonify({})
+            return jsonify(True)
     except Exception as e: 
         logger.error('Exception:%s', e)
         logger.error(traceback.format_exc())  
