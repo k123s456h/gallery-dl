@@ -30,8 +30,9 @@ class Logic(object):
         'interval': '120',
         'htm_interval': '360',
         'htm_last_update': '1970-01-01',
+        'pagecount': '1',
         'zip': 'True',
-        'dfolder': os.path.join(path_data, package_name),
+        'download_folder': os.path.join(path_data, package_name),
         'downlist': '',
         'blacklist': '',
         'all_download': 'False',
@@ -196,8 +197,7 @@ class Logic(object):
                 commands = [
                     ['msg', u'잠시만 기다려주세요.'],
                     [install_path],
-                    ['msg', u'설치가 완료되었습니다.'],
-                    ['msg', u'새로고침하세요.']
+                    ['msg', u'설치가 완료되었습니다. 새로고침하세요.']
                 ]
                 system.SystemLogicCommand.start('설치', commands)
             t = threading.Thread(target=func, args=())
@@ -220,8 +220,7 @@ class Logic(object):
                 commands = [
                     ['msg', u'잠시만 기다려주세요.'],
                     [uninstall_path],
-                    ['msg', u'제거가 완료되었습니다.'],
-                    ['msg', u'새로고침하세요.']
+                    ['msg', u'제거가 완료되었습니다. 새로고침하세요.']
                 ]
                 system.SystemLogicCommand.start('제거', commands)
             t = threading.Thread(target=func, args=())
