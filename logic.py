@@ -12,16 +12,19 @@ import time
 # third-party
 
 # sjva 공용
-from framework import db, app, path_app_root, path_data
+#from framework import db, app, scheduler, path_app_root, path_data
+from framework import db, app, scheduler, path_app_root
 from framework.logger import get_logger
+from framework.job import Job
 from framework.util import Util
 
 # 패키지
 from .plugin import package_name, logger
 from .model import ModelSetting
+from .logic_gallerydl import LogicGalleryDL
 #########################################################
 
-# path_data = '/app/data'
+path_data = '/app/data'
 
 class Logic(object):
     db_default = { 
@@ -90,7 +93,6 @@ class Logic(object):
     @staticmethod
     def scheduler_start():
         try:
-            # TODO: import scheduler
             interval = ModelSetting.query.filter_by(key='interval').first().value
             job = Job(package_name, package_name, interval, Logic.scheduler_function, u"%s 설명" % package_name, False)
             scheduler.add_job_instance(job)
@@ -110,14 +112,14 @@ class Logic(object):
 
     @staticmethod
     def scheduler_function():
-        #LogicNormal.scheduler_function()
+        #LogicNormal.scheduler_function() # get json file and parse it
         pass
 
 
     @staticmethod
     def reset_db():
         try:
-            db.session.query(ModelItem).delete()
+            db.session.query(ModelgdlItem).delete()
             db.session.commit()
             return True
         except Exception as e: 
@@ -186,11 +188,9 @@ class Logic(object):
     @staticmethod
     def install():
         try:
-            logger.debug('bbbbbbbbbbbbbbbbbbbbbbb')
             def func():
-                logger.debug('aaaaaaaaaaaaaaaaaaa')
                 #install_path = '/app/data/custom/gallery-dl/bin/install.sh'
-                install_path = '/app/data/plugin/gallery-dl/bin/install.sh'
+                install_path = '/app/data/plugin/gallery-dl/bin/install.sh' # for develop
                 os.chmod(install_path, 777)
 
                 import system
@@ -213,7 +213,7 @@ class Logic(object):
         try:
             def func():
                 #uninstall_path = '/app/data/custom/gallery-dl/bin/uninstall.sh'
-                uninstall_path = '/app/data/plugin/gallery-dl/bin/uninstall.sh'
+                uninstall_path = '/app/data/plugin/gallery-dl/bin/uninstall.sh' # for develop
                 os.chmod(uninstall_path, 777)
 
                 import system
@@ -229,3 +229,12 @@ class Logic(object):
         except Exception as e:
             logger.error('Exception: %s', e)
             logger.error(traceback.format_exc())
+    
+
+    # @staticmethod
+    # def download(url):
+    #     try:
+
+    #     except Exception as e: 
+    #             logger.error('Exception:%s', e)
+    #             logger.error(traceback.format_exc())

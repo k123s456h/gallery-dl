@@ -118,4 +118,44 @@ class ModelSetting(db.Model):
             logger.error(traceback.format_exc())
             logger.error('Error Key:%s Value:%s', key, value)
 
- 
+
+#########################################################
+
+
+class ModelgdlItem(db.Model):
+    __tablename__ = 'plugin_%s_item' % package_name
+    __table_args__ = {'mysql_collate': 'utf8_general_ci'}
+    __bind_key__ = package_name
+
+    id = db.Column(db.Integer, primary_key=True)
+    json = db.Column(db.JSON)
+    created_time = db.Column(db.DateTime)
+
+    title = db.Column(db.String)
+    total_image_count = db.Column(db.Integer)
+    url = db.Column(db.String)
+
+    def __init__(self):
+        self.created_time = datetime.now()
+
+    def as_dict(self):
+        ret = {x.name: getattr(self, x.name) for x in self.__table__.columns}
+        ret['created_time'] = self.created_time.strftime('%m-%d %H:%M:%S') 
+        return ret
+    
+    @staticmethod
+    def save(entity):
+        m = ModelgdlItem()
+        m.title = entity.title
+        m.total_image_count = entity.total_image_count
+        m.url = entity.url
+        db.session.add(m)
+        db.session.commit()
+
+    @staticmethod
+    def get(wr_id):
+        try:
+            return db.session.query(ModelgdlItem).filter_by(wr_id=wr_id).first()
+        except Exception as e:
+            logger.error('Exception:%s %s', e, wr_id)
+            logger.error(traceback.format_exc())

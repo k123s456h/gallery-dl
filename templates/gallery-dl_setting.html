@@ -8,8 +8,6 @@
     {{ macros.m_tab_head_start() }}
     {{ macros.m_tab_head2('normal', '일반', true) }}
     {{ macros.m_tab_head2('options', '옵션', false) }}
-    {{ macros.m_tab_head2('hitomi', '자동-hitomi', false) }}
-    {{ macros.m_tab_head2('etc', '기타', false) }}
     {{ macros.m_tab_head_end() }}
   </nav>
   <form id='setting' name='setting'>
@@ -28,25 +26,25 @@
         <!-- --proxy -->
         {{ macros.setting_checkbox('gallery-dl_proxy', '프록시 사용', value=arg['gallery-dl_proxy'], desc=['On: 다운로드에 프록시를 사용합니다.']) }}
         <div id="gallery-dl_proxy_div" class="collapse">
-          {{ macros.setting_input_text('gallery-dl_proxy_url', '프록시 사용', value=arg['gallery-dl_proxy_url'], desc=['url:port']) }}
+          {{ macros.setting_input_text('gallery-dl_proxy_url', '', value=arg['gallery-dl_proxy_url'], desc=['(http://||https://)url:port']) }}
         </div>
     
         <!-- --limit-rate -->
         {{ macros.setting_checkbox('gallery-dl_limit-rate', '다운로드 속도 제한', value=arg['gallery-dl_limit-rate'], desc=['On: 다운로드에 속도제한을 사용합니다.']) }}
         <div id="gallery-dl_limit-rate_div" class="collapse">
-          {{ macros.setting_input_text('gallery-dl_limit-rate_value', '제한 속도', value=arg['gallery-dl_limit-rate_value'], desc=['예: 500k, 2.5M']) }}
+          {{ macros.setting_input_text('gallery-dl_limit-rate_value', '', value=arg['gallery-dl_limit-rate_value'], desc=['예: 500k 또는 2.5M']) }}
         </div>
     
         <!-- retries -->
-        {{ macros.setting_checkbox('gallery-dl_retries', '재시도 회수', value=arg['gallery-dl_retries'], desc=['On: 다운로드 실패 시에 재시도 합니다.']) }}
+        {{ macros.setting_checkbox('gallery-dl_retries', '재시도 회수', value=arg['gallery-dl_retries'], desc=['On: 다운로드 실패 시에 n회 재시도 합니다.']) }}
         <div id="gallery-dl_retries_div" class="collapse">
-          {{ macros.setting_input_text('gallery-dl_retries_value', '값', value=arg['gallery-dl_retries_value'], desc=['예: 3']) }}
+          {{ macros.setting_input_text('gallery-dl_retries_value', '', value=arg['gallery-dl_retries_value'], desc=['예: 3']) }}
         </div>
     
         <!-- --sleep -->
         {{ macros.setting_checkbox('gallery-dl_sleep', 'sleep', value=arg['gallery-dl_sleep'], desc=['On: 각 다운로드 사이에 n초 쉽니다.']) }}
         <div id="gallery-dl_sleep_div" class="collapse">
-          {{ macros.setting_input_text('gallery-dl_sleep_value', '값', value=arg['gallery-dl_sleep_value'], desc=['예: 3']) }}
+          {{ macros.setting_input_text('gallery-dl_sleep_value', '', value=arg['gallery-dl_sleep_value'], desc=['예: 3']) }}
         </div>
     
         <!-- --username, --password -->
@@ -54,7 +52,7 @@
         'pixiv, nijie, seiga에는 필수.', 
         'danbooru, e621, exhentai, idolcomplex, instagram, luscious, sankaku, tsumino, twitter에는 선택.']) }}
         <div id="gallery-dl_auth_div" class="collapse">
-          {{ macros.setting_input_textarea('gallery-dl_auth_info', '인증정보', value=arg['gallery-dl_auth_info'], desc=['입력 형식: ', "['site1':'['id', 'pw']'], 'site2': '['id', 'pw']', ]"]) }}
+          {{ macros.setting_input_textarea('gallery-dl_auth_info', '', value=arg['gallery-dl_auth_info'], desc=['입력 형식: ', "['site1':'['id', 'pw']'], 'site2': '['id', 'pw']', ]"]) }}
         </div>
     
         <!-- --write-metadata -->
@@ -63,18 +61,10 @@
         <!-- --option -->
         {{ macros.setting_checkbox('gallery-dl_option', '기타 옵션', value=arg['gallery-dl_option'], desc=['On: gallery-dl 기타 옵션을 사용합니다.']) }}
         <div id="gallery-dl_option_div" class="collapse">
-          {{ macros.setting_input_textarea('gallery-dl_option_value', '값', value=arg['gallery-dl_option_value'], desc=["예:[ 'extractor.*.filename': '({gallery_id})[{artist}][{series}].{title}.{filename}.{extension}',
+          {{ macros.setting_input_textarea('gallery-dl_option_value', '', value=arg['gallery-dl_option_value'], desc=["예:[ 'extractor.*.filename': '({gallery_id})[{artist}][{series}].{title}.{filename}.{extension}',
             'extractor.*.cookies-update': 'true',  ]", '참고: https://github.com/mikf/gallery-dl/blob/master/docs/configuration.rst', 'bool값은 소문자로 입력.']) }}
         </div>
       {{ macros.m_tab_content_end() }}
-
-      
-      {{ macros.m_tab_content_start('hitomi', false) }}
-        {{ macros.m_hr()}}
-        {{ macros.info_text('hitomi-setting', 'test', value='123', desc=['']) }}
-        {{ macros.m_hr()}}
-      {{ macros.m_tab_content_end() }}
-
   
       {{ macros.m_tab_content_start('auto', false) }}
         {{ macros.setting_global_scheduler_button(arg['scheduler'], arg['is_running']) }}
@@ -85,11 +75,6 @@
         {{ macros.setting_input_textarea('blacklist', '다운로드 제외 만화 이름', value=arg['blacklist'], row='3', desc=['구분자 |']) }}
         {{ macros.setting_checkbox('all_download', 'All Download', value=arg['all_download'], desc=['On : 새로운 에피소드를 받을 때 이전 화 전부를 다운합니다.', '이미 받은 경우 제외']) }}
       {{ macros.m_tab_content_end() }}
-  
-      {{ macros.m_tab_content_start('etc', false) }}
-        {{ macros.setting_button([['global_one_execute_btn', '1회 실행']], left='1회 실행' ) }}
-        {{ macros.setting_button([['global_reset_db_btn', '목록 초기화']], left='DB정리' ) }}
-      {{ macros.m_tab_content_end() }}
   </div><!--tab-content-->
   </form>
 </div> <!--전체-->
@@ -97,7 +82,7 @@
 <script type="text/javascript">
 
 let package_name = "{{ arg['package_name'] }}";
-let is_installed = "{{ arg['is_installed'] }}" ? true : false;
+let is_installed = "{{ arg['is_installed'] }}" == "True" ? true : false;
 let current_version =  "{{ arg['current_version'] }}"
 console.log(package_name, is_installed, current_version)
 

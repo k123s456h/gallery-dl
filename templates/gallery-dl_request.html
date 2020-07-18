@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block content %}
+<div>
+  {{ macros.m_button_group([['global_setting_save_btn', '설정 저장']])}}
+  {{ macros.m_row_start('5') }}
+  {{ macros.m_row_end() }}
+  <nav>
+    {{ macros.m_tab_head_start() }}
+    {{ macros.m_tab_head2('hitomi', '히토미', true) }}
+    {{ macros.m_tab_head2('others', '기타', false) }}
+    {{ macros.m_tab_head_end() }}
+  </nav>
+  <form id='setting' name='setting'>
+    <div class="tab-content" id="nav-tabContent">
+      {{ macros.m_tab_content_start('hitomi', true) }}
+        {{ macros.m_hr()}}
+        {{ macros.setting_input_text_and_buttons('gallery-dl_request', '주소', buttons=[['gallery-dl_request_btn', '다운로드']], 
+        value='https://www.mangahere.cc/manga/kaguya_sama_wa_kokurasetai_tensai_tachi_no_renai_zunousen/c195', col='9', placeholder='', desc='', type='text',
+        disabled=False) }}
+      {{ macros.m_tab_content_end() }}
+
+      {{ macros.m_tab_content_start('others', false) }}
+        {{ macros.m_hr()}}
+        {{ macros.info_text('ooooooooo', 'asfasfw', 'https://github.com/mikf/gallery-dl') }}
+      {{ macros.m_tab_content_end() }}
+  </div><!--tab-content-->
+  </form>
+</div> <!--전체-->
+
+<script type="text/javascript">
+  let package_name = "{{ arg['package_name'] }}";
+  let is_installed = "{{ arg['is_installed'] }}" == "True" ? true : false;
+
+  $(document).ready(function(){
+  });
+
+  $("body").on('click', '#gallery-dl_request_btn', function (e) {
+    e.preventDefault()
+    
+    if(!is_installed){
+      $.notify('<strong>gallery-dl 설치가 필요합니다.</strong>', {
+        type: 'warning'
+      });
+      return;
+    }
+
+    let url = $("#gallery-dl_request")[0].value
+  
+    $.ajax({
+      url: '/' + package_name + '/ajax/download',
+      type: "POST",
+      cache: false,
+      data: { url: url },
+      dataType: "json",
+      success: function (ret) {
+        if (ret) {
+          //window.open('/manamoa/queue');
+          //window.location.href = '/gallery-dl/request'
+          $.notify(`<strong>${url}<br>큐에 추가하였습니다.</strong>`, {
+            type: 'success'
+          });
+        } else {
+          $.notify(`<strong>${url}<br>큐 추가 실패</strong>`, {
+            type: 'warning'
+          });
+        }
+      }
+    });
+
+
+  });
+
+/*
+if not installed -> 
+$.notify('<strong>gallery-dl설치가 필요합니다.</strong>', {
+          type: 'warning''
+        });
+*/
+
+</script>    
+{% endblock %}

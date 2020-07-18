@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block content %}
+<div>
+  {{ macros.m_button_group([['global_setting_save_btn', '설정 저장']])}}
+  {{ macros.m_row_start('5') }}
+  {{ macros.m_row_end() }}
+  <nav>
+    {{ macros.m_tab_head_start() }}
+    {{ macros.m_tab_head2('hitomi', '히토미', true) }}
+    {{ macros.m_tab_head2('others', '기타', false) }}
+    {{ macros.m_tab_head_end() }}
+  </nav>
+  <form id='setting' name='setting'>
+    <div class="tab-content" id="nav-tabContent">
+      {{ macros.m_tab_content_start('hitomi', true) }}
+        {{ macros.m_hr()}}
+        {{ macros.info_text('hhhh', 'dasfsafsaf', 'https://github.com/mikf/gallery-dl') }}
+      {{ macros.m_tab_content_end() }}
+
+      {{ macros.m_tab_content_start('others', false) }}
+        {{ macros.m_hr()}}
+        {{ macros.info_text('ooooooooo', 'asfasfw', 'https://github.com/mikf/gallery-dl') }}
+      {{ macros.m_tab_content_end() }}
+  </div><!--tab-content-->
+  </form>
+</div> <!--전체-->
+
+<script type="text/javascript">
+
+$(document).ready(function(){
+});
+
+</script>    
+{% endblock %}

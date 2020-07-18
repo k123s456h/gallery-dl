@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block content %}
+<div>
+  {{ macros.m_button_group([['global_setting_save_btn', '설정 저장']])}}
+  {{ macros.m_row_start('5') }}
+  {{ macros.m_row_end() }}
+  <nav>
+    {{ macros.m_tab_head_start() }}
+    {{ macros.m_tab_head2('hitomi', '히토미', true) }}
+    {{ macros.m_tab_head2('etc', '기타', false) }}
+    {{ macros.m_tab_head_end() }}
+  </nav>
+  <form id='setting' name='setting'>
+    <div class="tab-content" id="nav-tabContent">
+      {{ macros.m_tab_content_start('hitomi', true) }}
+        {{ macros.m_hr()}}
+        {{ macros.info_text_go('hitomi_origin', '데이터 제공', 'https://github.com/KurtBestor/Hitomi-Downloader') }}
+      {{ macros.m_tab_content_end() }}
+
+      {{ macros.m_tab_content_start('etc', false) }}
+        {{ macros.setting_button([['global_one_execute_btn', '1회 실행']], left='1회 실행' ) }}
+        {{ macros.setting_button([['global_reset_db_btn', '목록 초기화']], left='DB정리' ) }}
+      {{ macros.m_tab_content_end() }}
+  </div><!--tab-content-->
+  </form>
+</div> <!--전체-->
+
+<script type="text/javascript">
+
+$(document).ready(function(){
+});
+
+</script>    
+{% endblock %}

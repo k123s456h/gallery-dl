@@ -25,7 +25,7 @@ blueprint = Blueprint(package_name, package_name, url_prefix='/%s' %  package_na
 menu = {
     'main' : [package_name, 'gallery-dl'],
     'sub' : [
-        ['setting', '설정'], ['schedule', '작업'],['request', '요청'], ['queue', '큐'],['list', '목록'], ['log', '로그']
+        ['setting', '설정'], ['scheduler', '자동'], ['request', '요청'], ['queue', '큐'],['list', '목록'], ['log', '로그']
     ],
     'category' : 'service'
 }
@@ -36,7 +36,7 @@ plugin_info = {
     'category_name' : 'service',
     'developer' : 'lapis',
     'description' : 'gallery-dl',
-    'home' : 'https://github.com/',
+    'home' : 'https://github.com/k123s456h/gallery-dl',
     'more' : '',
 }
 
@@ -59,8 +59,6 @@ def first_menu(sub):
     if sub == 'setting':
         arg = ModelSetting.to_dict()
         arg['package_name']  = package_name
-        # arg['tmp_gallery-dl_api'] = '%s/%s/api/gallery-dl/%s' % (SystemModelSetting.get('ddns'), package_name, '12548')
-        
         if(Logic.is_installed()):
             arg['is_installed'] = True
             try:
@@ -71,9 +69,21 @@ def first_menu(sub):
         else:
             arg['is_installed'] = False
             arg['current_version'] = 'not installed'
-        
-        # if SystemModelSetting.get_bool('auth_use_apikey'):
-        #     arg['tmp_gallery-dl_api'] += '?apikey=%s' % SystemModelSetting.get('auth_apikey')
+
+        return render_template('{package_name}_{sub}.html'.format(package_name=package_name, sub=sub), arg=arg)
+    elif sub == 'scheduler':
+        arg = ModelSetting.to_dict()
+        return render_template('{package_name}_{sub}.html'.format(package_name=package_name, sub=sub), arg=arg)
+    elif sub == 'request':
+        arg = ModelSetting.to_dict()
+        arg['package_name']  = package_name
+        arg['is_installed'] = Logic.is_installed()
+        return render_template('{package_name}_{sub}.html'.format(package_name=package_name, sub=sub), arg=arg)
+    elif sub == 'queue':
+        arg = ModelSetting.to_dict()
+        return render_template('{package_name}_{sub}.html'.format(package_name=package_name, sub=sub), arg=arg)
+    elif sub == 'list':
+        arg = ModelSetting.to_dict()
         return render_template('{package_name}_{sub}.html'.format(package_name=package_name, sub=sub), arg=arg)
     elif sub == 'log':
         return render_template('log.html', package=package_name)
@@ -90,19 +100,19 @@ def ajax(sub):
             ret = ModelSetting.setting_save(request)
             return jsonify(ret)
         elif sub == 'status':
-            # todo = request.form['todo']
-            # if todo == 'true':
-            #     if Logic.current_process is None:
-            #         Logic.scheduler_start()
-            #         ret = 'execute'
-            #     else:
-            #         ret =  'already_execute'
-            # else:
-            #     if Logic.current_process is None:
-            #         ret =  'already_stop'
-            #     else:
-            #         Logic.scheduler_stop()
-            #         ret =  'stop'
+            todo = request.form['todo']
+            if todo == 'true':
+                if Logic.current_process is None:
+                    Logic.scheduler_start()
+                    ret = 'execute'
+                else:
+                    ret =  'already_execute'
+            else:
+                if Logic.current_process is None:
+                    ret =  'already_stop'
+                else:
+                    Logic.scheduler_stop()
+                    ret =  'stop'
             return jsonify(True)
         elif sub == 'install':
             logger.debug('gallery-dl installing...')
@@ -112,6 +122,13 @@ def ajax(sub):
             logger.debug('gallery-dl uninstalling...')
             Logic.uninstall()
             return jsonify(True)
+        elif sub == 'download':
+            from .logic_gallerydl import LogicGalleryDL
+            print('############asdf###############################\n')
+            print(request)
+            print('###############################################\n')
+            LogicGalleryDL.download(request)
+            return jsonify(True)
     except Exception as e: 
         logger.error('Exception:%s', e)
         logger.error(traceback.format_exc())  
@@ -119,16 +136,11 @@ def ajax(sub):
 #########################################################
 # API - 외부
 #########################################################
-@blueprint.route('/api/<sub>/<sub2>', methods=['GET', 'POST'])
-@check_api
-def api(sub, sub2):
+@blueprint.route('/api/<sub>', methods=['GET', 'POST'])
+#@check_api
+def api(sub):
     try:
-        if sub == 'gallery-dl':
-            # from .logic_normal import LogicNormal
-            # return LogicNormal.make_gallery-dl(sub2)
-            pass
-        elif sub == 'klive':
-            pass
+        pass
     except Exception as e:
         logger.debug('Exception:%s', e)
         logger.debug(traceback.format_exc())
