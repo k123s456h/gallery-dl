@@ -5,6 +5,10 @@ import os
 import traceback
 import requests
 from datetime import datetime
+import sys
+
+from subprocess import PIPE, Popen
+from Queue import Queue, Empty  # python 2.x
 
 # third-party
 
@@ -28,104 +32,96 @@ except:
 from fake_useragent import UserAgent
 #########################################################
 
+class LogicGalleryDL:
+  @staticmethod
+  def make_process(url): # TODO: 비동기적으로 명령어 실행 및 stdout 가져오기
+    try:
+      ON_POSIX = 'posix' in sys.builtin_module_names
 
-class LogicGalleryDL(object):
-    @staticmethod
-    def make_process(url):
-        try:
-            def init(url, options):
-                import subprocess
-                commands = ['gallery-dl', url] + options
-                # proc.poll() == None이면 진행중인것
-                # proc.communicate()로 실행
-                # proc.returncode로 결과 확인
-                return subprocess.Popen(commands)
+      user_agent = UserAgent(cache=False).random
+      commands = ['gallery-dl', url, 
+                '--ignore-config',
+                '--config', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'gallery-dl.conf'),
+                '--option', 'extractor.user-agent='+user_agent]
+      
+      def enqueue_output(out, queue):
+          for line in iter(out.readline, b''):
+              queue.put(line)
+          out.close()
 
-            options = ['--ignore-config']
-            user_agent = UserAgent(cache=False).random
-            # use as .random || .chrome || .google || ...
-            # extractor.*.user-agent
+      p = Popen(commands, stdout=PIPE, bufsize=1, close_fds=ON_POSIX)
+      q = Queue()
+      t = Thread(target=enqueue_output, args=(p.stdout, q))
+      t.daemon = True # thread dies with the program
+      t.start()
 
-            options += ['--dest', ModelSetting.get('download_folder').strip()]
-            if ModelSetting.get_bool('zip'):
-                options += ['--zip']
-            if ModelSetting.get_bool('gallery-dl_proxy'):
-                options += ['--proxy', ModelSetting.get('gallery-dl_proxy_url').strip()]
-            if ModelSetting.get_bool('gallery-dl_limit-rate'):
-                options += ['--limit-rate', ModelSetting.get('gallery-dl_limit-rate_value').strip()]
-            if ModelSetting.get_bool('gallery-dl_retries'):
-                options += ['--retries', ModelSetting.get('gallery-dl_retries_value').strip()]
-            if ModelSetting.get_bool('gallery-dl_sleep'):
-                options += ['--sleep', ModelSetting.get('gallery-dl_sleep_value').strip()]
-            if ModelSetting.get_bool('gallery-dl_auth'):
-                pass
-            if ModelSetting.get_bool('gallery-dl_write-metadata'):
-                options += ['--write-metadata']
-            if ModelSetting.get_bool('gallery-dl_option'):
-                pass
+      # read line without blocking
+      try:  line = q.get_nowait() # or q.get(timeout=.1)
+      except Empty:
+          print('no output yet')
+      else: # got line
+          print(line)
+          # ... do something with line
 
-            return init(url, options)
+      return True
+    except Exception as e: 
+            logger.error('Exception:%s', e)
+            logger.error(traceback.format_exc())
 
-        except Exception as e: 
-                logger.error('Exception:%s', e)
-                logger.error(traceback.format_exc())
+  @staticmethod
+  def download(req):
+      try:
+          url = req.form['url']
+          url = None if url == '' else url
 
-    @staticmethod
-    def download(self, req):
-        try:
-            url = req.form['url']
-            url = None if url == '' else url
+          if url is not None:
+              LogicGalleryDL.make_process(url)
+      except Exception as e: 
+              logger.error('Exception:%s', e)
+              logger.error(traceback.format_exc())
 
-            if url is not None:
-                proc = self.make_process(url)
-                proc.communicate()
-                logger.debug(proc.retruncode)
-        except Exception as e: 
-                logger.error('Exception:%s', e)
-                logger.error(traceback.format_exc())
+  @staticmethod
+  def get_info_json(url):
+      import subprocess
+      commands = ['gallery-dl', url, '--ignore-config', '--simulate', '--list-keywords']
+      raw_info = subprocess.check_output(commands)
 
-    @staticmethod
-    def get_info_json(url):
-        import subprocess
-        commands = ['gallery-dl', 'https://e-hentai.org/g/686095/4873b506a3/', '--ignore-config', '--simulate', '--list-keywords']
-        raw_info = subprocess.check_output(commands)
+      info_json = {}
+      raw_info = raw_info.split('\n')
+      n = len(raw_info)
 
-        info_json = {}
-        raw_info = raw_info.split('\n')
-        n = len(raw_info)
-
-        keyword_type = ""
-        keyword_name = ""
-        keyword = ""
-        for idx in range(0, n):
-            if raw_info[idx].startswith('['):
-                continue
-            if raw_info[idx] == "Keywords for directory names:":
-                info_json["directory"] = {}
-                keyword_type = "directory"
-                continue
-            if raw_info[idx] == "Keywords for filenames and --filter:":
-                info_json["filename"] = {}
-                keyword_type = "filename"
-                continue
-            if raw_info[idx].startswith("-------------"):
+      keyword_type = ""
+      keyword_name = ""
+      keyword = ""
+      for idx in range(0, n):
+          if raw_info[idx].startswith('['):
               continue
-            if len(raw_info[idx]) == 0:
+          if raw_info[idx] == "Keywords for directory names:":
+              info_json["directory"] = {}
+              keyword_type = "directory"
               continue
+          if raw_info[idx] == "Keywords for filenames and --filter:":
+              info_json["filename"] = {}
+              keyword_type = "filename"
+              continue
+          if raw_info[idx].startswith("-------------"):
+            continue
+          if len(raw_info[idx]) == 0:
+            continue
 
-            if not raw_info[idx].startswith(' '):
-                if raw_info[idx].endswith('[]'):
-                  keyword = []
-                else:
-                  keyword = ""
-                keyword_name = raw_info[idx].strip()
-                info_json[keyword_type][keyword_name] = keyword
-            else:
-              if keyword == "":
-                info_json[keyword_type][keyword_name] = raw_info[idx].strip()
+          if not raw_info[idx].startswith(' '):
+              if raw_info[idx].endswith('[]'):
+                keyword = []
               else:
-                info_json[keyword_type][keyword_name].append(raw_info[idx][4:].strip())
-        return info_json
+                keyword = ""
+              keyword_name = raw_info[idx].strip()
+              info_json[keyword_type][keyword_name] = keyword
+          else:
+            if keyword == "":
+              info_json[keyword_type][keyword_name] = raw_info[idx].strip()
+            else:
+              info_json[keyword_type][keyword_name].append(raw_info[idx][4:].strip())
+      return info_json
 
 
 

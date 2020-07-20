@@ -73,6 +73,7 @@ class ModelSetting(db.Model):
                 db.session.commit()
             else:
                 db.session.add(ModelSetting(key, value.strip()))
+
         except Exception as e:
             logger.error('Exception:%s %s', e, key)
             logger.error(traceback.format_exc())
@@ -95,7 +96,17 @@ class ModelSetting(db.Model):
                     continue
                 if key.startswith('tmp_'):
                     continue
-                logger.debug('Key:%s Value:%s', key, value)
+                
+                #added
+                if key == 'gallery-dl_option_value':
+                    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'gallery-dl.conf'), 'w') as gdl_conf:
+                        gdl_conf.write(value)
+                        gdl_conf.close()
+                    logger.debug('Key:%s Value:%s', key, value[:100]+' ...')
+                else:
+                    logger.debug('Key:%s Value:%s', key, value)
+                #added
+
                 entity = db.session.query(ModelSetting).filter_by(key=key).with_for_update().first()
                 entity.value = value
             db.session.commit()

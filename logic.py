@@ -12,8 +12,8 @@ import time
 # third-party
 
 # sjva 공용
-#from framework import db, app, scheduler, path_app_root, path_data
-from framework import db, app, scheduler, path_app_root
+from framework import db, app, scheduler, path_app_root, path_data
+#from framework import db, app, scheduler, path_app_root
 from framework.logger import get_logger
 from framework.job import Job
 from framework.util import Util
@@ -24,7 +24,7 @@ from .model import ModelSetting
 from .logic_gallerydl import LogicGalleryDL
 #########################################################
 
-path_data = '/app/data'
+#path_data = '/app/data' # for develop
 
 class Logic(object):
     db_default = { 
@@ -34,23 +34,10 @@ class Logic(object):
         'htm_interval': '360',
         'htm_last_update': '1970-01-01',
         'pagecount': '1',
-        'zip': 'True',
-        'download_folder': os.path.join(path_data, package_name),
         'downlist': '',
         'blacklist': '',
         'all_download': 'False',
-        'gallery-dl_proxy': 'False',
-        'gallery-dl_proxy_url': '',
-        'gallery-dl_limit-rate': 'False',
-        'gallery-dl_limit-rate_value': '',
-        'gallery-dl_retries': 'False',
-        'gallery-dl_retries_value': '',
-        'gallery-dl_sleep': 'False',
-        'gallery-dl_sleep_value': '',
-        'gallery-dl_auth': 'False',
-        'gallery-dl_auth_info': '',
-        'gallery-dl_write-metadata': 'False',
-        'gallery-dl_option': 'False',
+
         'gallery-dl_option_value': ''
     }
 
@@ -71,7 +58,14 @@ class Logic(object):
     def plugin_load():
         try:
             logger.debug('%s plugin_load', package_name)
+            
+            with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'gallery-dl.conf')) as gdl_conf:
+                ModelSetting.set('gallery-dl_option_value', gdl_conf.read())
+                gdl_conf.close()
+
             Logic.db_init()
+
+            # auto start
             if ModelSetting.query.filter_by(key='auto_start').first().value == 'True':
                 Logic.scheduler_start()
             # 편의를 위해 json 파일 생성
@@ -203,6 +197,11 @@ class Logic(object):
             t = threading.Thread(target=func, args=())
             t.setDaemon(True)
             t.start()
+
+            with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'gallery-dl.conf')) as gdl_conf:
+                ModelSetting.set('gallery-dl_option_value', gdl_conf.read())
+                gdl_conf.close()
+
         except Exception as e:
             logger.error('Exception: %s', e)
             logger.error(traceback.format_exc())

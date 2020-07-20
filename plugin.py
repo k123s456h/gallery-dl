@@ -124,9 +124,7 @@ def ajax(sub):
             return jsonify(True)
         elif sub == 'download':
             from .logic_gallerydl import LogicGalleryDL
-            print('############asdf###############################\n')
-            print(request)
-            print('###############################################\n')
+            logger.debug('requested url: %s', request.form['url'])
             LogicGalleryDL.download(request)
             return jsonify(True)
     except Exception as e: 
@@ -134,13 +132,22 @@ def ajax(sub):
         logger.error(traceback.format_exc())  
 
 #########################################################
-# API - 외부
+# API
 #########################################################
 @blueprint.route('/api/<sub>', methods=['GET', 'POST'])
 #@check_api
 def api(sub):
     try:
+        if sub == 'download':
+            url = request.form.get('url')
+            
         pass
     except Exception as e:
         logger.debug('Exception:%s', e)
         logger.debug(traceback.format_exc())
+
+#########################################################
+# socketio
+#########################################################
+def socketio_emit(cmd, data):
+	socketio.emit(cmd, LogicNormal.get_data(data), namespace='/%s' % package_name, broadcast=True)
