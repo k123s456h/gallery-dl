@@ -10,8 +10,8 @@
   {{ macros.m_row_start('5') }}
   {{ macros.m_col(1,  macros.m_strong('분류')) }}
   {{ macros.m_col(4,  macros.m_strong('제목')) }}
-  {{ macros.m_col(4,  macros.m_strong('Url')) }}
-  {{ macros.m_col(1,  macros.m_strong('Pages')) }}
+  {{ macros.m_col(4,  macros.m_strong('url')) }}
+  {{ macros.m_col(1,  macros.m_strong('pages')) }}
   {{ macros.m_col(1,  macros.m_strong('상태')) }}
   {{ macros.m_col(1,  macros.m_strong('진행률')) }}
   {{ macros.m_row_end() }}
@@ -33,15 +33,15 @@ $(document).ready(function(){
   });
 
   socket.on('queue_one', function(data){
-    console.log(data.title, data.url, data.index)
+    console.log(data['title'], data['url'], data['index'])
     str = make_queue_one(data)
-    document.getElementById("queue_"+data.static_index+"_div").innerHTML = m_hr(0) + str;
+    document.getElementById("queue_"+data['id']+"_div").innerHTML = m_hr(0) + str;
   });
 
   socket.on('change_status', function(data){
-    console.log(data.title, data.url, data.index)
+    console.log(data)
     str = make_queue_one(data);
-    document.getElementById("queue_" + data.static_index + '_div').innerHTML = str;
+    document.getElementById("queue_" + data['id'] + '_div').innerHTML = str;
   })
 });
 
@@ -53,7 +53,7 @@ function on_queue_list(data) {
 function make_queue_list(data) {
   str = '';
   for (i in data) {
-    str += '<div id="queue_'+data[i].static_index+'_div">'
+    str += '<div id="queue_'+data[i]['id']+'_div">'
     str += make_queue_one(data[i])
     str += '</div>' //one
     if (i != data.length -1) str += m_hr(0);
@@ -64,15 +64,15 @@ function make_queue_list(data) {
 function make_queue_one(data) {
   str = m_row_start();
 
-  category = data.category
-  title = data.title
-  url = data.url
-  pages = data.total_image_count
-  status = data.status
-  if( data.total_image_count == 0 ){
+  category = data['category']
+  title = data['title']
+  url = data['url']
+  pages = data['total_image_count']*1
+  status = data['status']
+  if( pages == 0 ){
     percent = "0"
   }else{
-    percent = data.index*100 / data.total_image_count;
+    percent = data['index']*100 / pages;
     percent = parseInt(percent)
     if(percent > 100){
       percent = 100

@@ -37,13 +37,14 @@ class LogicGalleryDL:
   @celery.task(bind=True)
   def make_download(self, entity):
     try:
-      entity.status = '메타데이터 수집 중'
+      entity['status'] = '메타데이터 수집 중'
+      entity['index'] = 0
       LogicGalleryDL.update_ui(self, entity)
 
-      url = entity.url
+      url = entity['url']
       info_json = LogicGalleryDL.get_info_json(url)
       if info_json == "invalid":
-        entity.status='실패: url'
+        entity['status']='실패: url'
         LogicGalleryDL.update_ui(self, entity)
         return False
       else:
@@ -51,9 +52,9 @@ class LogicGalleryDL:
         info_json_filename = info_json['filename']
 
         site = info_json['directory']['category']
-        entity.category = site
+        entity['category'] = site
         if site == 'hitomi':
-          (entity.title, entity.artist, entity.parody, entity.total_image_count) = \
+          (entity['title'], entity['artist'], entity['parody'], entity['total_image_count']) = \
           (info_json_directory['title'], str(info_json_directory['artist[]']), str(info_json_directory['parody[]']), info_json_directory['count'])
         elif site == 'e-hentai' or site == 'exhentai':
           artist = []
@@ -65,19 +66,20 @@ class LogicGalleryDL:
             elif tag.startswith('parody'):
               parody.append(tag[7:])
 
-          (entity.title, entity.artist, entity.parody, entity.total_image_count) = \
+          (entity['title'], entity['artist'], entity['parody'], entity['total_image_count']) = \
           (info_json_directory['title'], str(artist), str(parody), info_json_directory['count'])
         elif site == 'mangahere':
-          (entity.title, entity.total_image_count) = \
+          (entity['title'], entity['total_image_count']) = \
           (info_json_directory['manga'], info_json_directory['count'])
         else:
           pass
         
-        entity.status = '다운로드 중'
+        entity['status'] = '다운로드 중'
         LogicGalleryDL.update_ui(self, entity)
-        logger.debug("%s\n%s\n%s\n%s\n%s", entity.url, entity.title, entity.status, entity.index, entity.static_index)
+        logger.debug("%s\n%s\n%s\n%s\n%s", entity['url'], entity['title'], entity['status'], entity['index'], entity['id'])
 
         user_agent = UserAgent(cache=False).random
+        index = 0
         try:
           commands = ['gallery-dl', url, 
                     '--ignore-config',
@@ -85,17 +87,18 @@ class LogicGalleryDL:
                     '--option', 'extractor.user-agent='+user_agent]
           proc = Popen(commands, stdout=PIPE, stderr=STDOUT)
           for line in iter(proc.stdout.readline, b''):
-            entity.index += 1
+            index += 1
+            entity['index'] = index
             LogicGalleryDL.update_ui(self, entity)
             logger.debug("line: %s", line)
         except Exception as e:
           logger.error('Exception:%s', e)
           logger.error(traceback.format_exc())
 
-        entity.status = '완료'
-        entity.index = entity.total_image_count
+        entity['status'] = '완료'
+        entity['index'] = entity['total_image_count'] * 1
         LogicGalleryDL.update_ui(self, entity)
-        ModelGalleryDlItem.save(entity)
+        ModelGalleryDlItem.save_as_dict(entity)
         return True
     except Exception as e: 
             logger.error('Exception:%s', e)
@@ -136,13 +139,13 @@ class LogicGalleryDL:
                 keyword = []
               else:
                 keyword = ""
-              keyword_name = raw_info[idx].strip()
-              info_json[keyword_type][keyword_name] = keyword
+              keyword_name = raw_info[idx].strip().decode('utf-8')
+              info_json[keyword_type][keyword_name] = keyword.decode('utf-8')
           else:
             if keyword == "":
-              info_json[keyword_type][keyword_name] = raw_info[idx].strip()
+              info_json[keyword_type][keyword_name] = raw_info[idx].strip().decode('utf-8')
             else:
-              info_json[keyword_type][keyword_name].append(raw_info[idx][4:].strip())
+              info_json[keyword_type][keyword_name].append(raw_info[idx][4:].strip().decode('utf-8'))
       return info_json
     except Exception as e:
       logger.error('Exception: returncode: %s', e.returncode)
@@ -160,12 +163,14 @@ class LogicGalleryDL:
       logger.debug('FOR update : %s' % arg)
       if arg['status'] == 'PROGRESS':
         entity = arg['result']['data']
-        LogicGalleryDL.entity_update('change_status', entity.as_dict())
-        from .logic_queue import QueueEntity
-        for idx, e in enumerate(QueueEntity.entity_list):
-          logger.debug("searching...: %s ==? %s", e.url, entity.url)
-          if e.url == entity.url:
-              QueueEntity.entity_list[idx] = entity
+
+        logger.debug('safsfasdf: %s', entity)
+
+        LogicGalleryDL.entity_update('change_status', entity)
+        from .logic_queue import LogicQueue
+        for idx, e in enumerate(LogicQueue.entity_list):
+          if e['url'] == entity['url']:
+              LogicQueue.entity_list[idx] = entity
               break
 
   @staticmethod
@@ -180,48 +185,29 @@ class LogicGalleryDL:
   def download(entity):
       LogicGalleryDL.stop_flag = False
       try:
-          url = entity.url
+          url = entity['url']
           url = None if url == '' else url
           if url is not None:
               if LogicGalleryDL.stop_flag == True:
                 return
 
-              LogicGalleryDL.entity_update('queue_one', entity.as_dict())
+              LogicGalleryDL.entity_update('queue_one', entity)
 
-              is_in_completed_list = ModelGalleryDlItem.get(entity.url)
-              if is_in_completed_list is None:
-
-                  # if app.config['config']['use_celery']:
-                  #     isSuccess = LogicGalleryDL.make_download.apply_async((entity,)).get()
-                  #     if isSuccess:
-                  #       LogicGalleryDL.update(entity)
-                  #     else:
-                  #       LogicGalleryDL.entity_update(entity)
-                  #     LogicGalleryDL.entity_update('change_status', entity.as_dict())
-                  # else:
-                  #   LogicGalleryDL.make_download(None, entity)
-                  #   LogicGalleryDL.entity_update('change_status', entity.as_dict())
-
-
-                  if app.config['config']['use_celery']:
-                    result = LogicGalleryDL.make_download.apply_async((entity,))
-                    #result.get()
-                    try:
-                        result.get(on_message=LogicGalleryDL.update, propagate=True)
-                    except:
-                        logger.debug('CELERY on_message not process.. start with no CELERY')
-                        LogicGalleryDL.make_download(None, entity)
-                        LogicGalleryDL.entity_update('change_status', entity.as_dict())
-                  else:
+              if app.config['config']['use_celery']:
+                result = LogicGalleryDL.make_download.apply_async((entity,))
+                #result.get()
+                try:
+                    result.get(on_message=LogicGalleryDL.update, propagate=True)
+                except:
+                    logger.debug('CELERY on_message not process.. start with no CELERY')
                     LogicGalleryDL.make_download(None, entity)
-                    LogicGalleryDL.entity_update('change_status', entity.as_dict())
-
+                    LogicGalleryDL.entity_update('change_status', entity)
               else:
-                  entity.status = '중복'  
+                LogicGalleryDL.make_download(None, entity)
+                LogicGalleryDL.entity_update('change_status', entity)
           else:
-              entity.status='실패: url'
-
-          LogicGalleryDL.entity_update('change_status', entity.as_dict())
+              entity['status'] = '실패: url'
+              LogicGalleryDL.entity_update('change_status', entity)
       except Exception as e: 
               logger.error('Exception:%s', e)
               logger.error(traceback.format_exc())

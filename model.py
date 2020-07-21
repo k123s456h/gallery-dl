@@ -115,7 +115,7 @@ class ModelSetting(db.Model):
 
 
 class ModelGalleryDlItem(db.Model):
-    # id  json  created_time  title  artist  series  url  total_image_count
+    # id  json  created_time  title  artist  series  category  url  total_image_count index status
     # int json  datetime      str    str     str     str  int
 
     __tablename__ = 'plugin_%s_item' % package_name
@@ -132,13 +132,18 @@ class ModelGalleryDlItem(db.Model):
     category = db.Column(db.String)
     url = db.Column(db.String)
     total_image_count = db.Column(db.Integer)
+    index = db.Column(db.Integer)
     status = db.Column(db.Integer)
 
-    def __init__(self, url):
+    def __init__(self):
         self.created_time = datetime.now()
-        self.url = url
-        self.status = u"대기"
-
+        self.title = ''
+        self.artist = ''
+        self.parody = ''
+        self.category = ''
+        self.url = ''
+        self.total_image_count = 0
+        self.status = ''
 
     def as_dict(self):
         ret = {x.name: getattr(self, x.name) for x in self.__table__.columns}
@@ -158,9 +163,47 @@ class ModelGalleryDlItem(db.Model):
         db.session.commit()
 
     @staticmethod
+    def save_as_dict(d):
+        try:
+            logger.debug(d)
+            entity = db.session.query(ModelGalleryDlItem).filter_by(id=d['id']).with_for_update().first()
+            if entity is not None:
+                entity.status = unicode(d['status'])
+                entity.title = unicode(d['title'])
+                entity.artist = unicode(d['artist'])
+                entity.parody = unicode(d['parody'])
+                entity.category = unicode(d['category'])
+                entity.total_image_count = d['total_image_count']
+                entity.url = unicode(d['url'])
+
+                db.session.commit()
+        except Exception as e:
+            logger.error('Exception:%s', e)
+            logger.error(traceback.format_exc())
+
+    @staticmethod
     def get(url):
         try:
             return db.session.query(ModelGalleryDlItem).filter_by(url=url).first()
         except Exception as e:
             logger.error('Exception:%s %s', e, url)
+            logger.error(traceback.format_exc())
+
+    @staticmethod
+    def init(url):
+        try:
+            entity = db.session.query(ModelGalleryDlItem).filter_by(url=url).first()
+            if entity is None:
+                entity = ModelGalleryDlItem()
+                entity.url = url
+                entity.created_time = datetime.now()
+                entity.status = u'대기'
+                db.session.add(entity)
+                db.session.commit()
+            #else:
+            #    if entity.status > 10:
+            #        return None
+            return entity.as_dict()
+        except Exception as e:
+            logger.error('Exception:%s', e)
             logger.error(traceback.format_exc())

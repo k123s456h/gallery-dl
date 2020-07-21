@@ -25,12 +25,14 @@ logger = get_logger(package_name)
 
 from .logic import Logic
 from .model import ModelSetting
+from logic_queue import LogicQueue
 
 
 blueprint = Blueprint(package_name, package_name, url_prefix='/%s' %  package_name, template_folder=os.path.join(os.path.dirname(__file__), 'templates'), static_folder=os.path.join(os.path.dirname(__file__), 'kthoom'), static_url_path='kthoom')
 
 def plugin_load():
     Logic.plugin_load()
+#    LogicQueue.queue_start()
 
 def plugin_unload():
     Logic.plugin_unload()
@@ -253,7 +255,7 @@ def socketio_callback(cmd, data, encoding=True):
 
 
 def send_queue_list():
-    from logic_queue import QueueEntity
-    tmp = QueueEntity.entity_list
-    t = [x.as_dict() for x in tmp]
-    socketio_callback('queue_list', t, encoding=False)
+    tmp = LogicQueue.entity_list
+    #t = [x.as_dict() for x in tmp]
+    #socketio_callback('queue_list', t, encoding=False)
+    socketio_callback('queue_list', tmp, encoding=False)

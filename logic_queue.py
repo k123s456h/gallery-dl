@@ -18,71 +18,11 @@ from framework.util import Util
 # 패키지
 import system
 from .plugin import package_name, logger
-from .model import ModelSetting
+from .model import ModelGalleryDlItem
 from .logic_gallerydl import LogicGalleryDL
 
 
 #########################################################
-
-class QueueEntity:
-    static_index = 0
-    entity_list = []
-
-    def __init__(self):
-        self.category = ''
-        self.title = ''
-        self.artist = ''
-        self.parody = ''
-        #self.all_download = False
-        self.episodes = []
-        self.static_index = QueueEntity.static_index
-        self.index = 0
-        self.url = ''
-        self.total_image_count = 0
-        self.status = '대기'
-        QueueEntity.static_index += 1
-        QueueEntity.entity_list.append(self)
-
-    def as_dict(self):
-        d = {
-            'static_index' : self.static_index,
-            'index': self.index,
-            'category': self.category,
-            'title' : self.title,
-            'artist' : self.artist,
-            'parody': self.parody,
-            'episodes' : [x.as_dict() for x in self.episodes],
-            'url' : self.url, 
-            'total_image_count': self.total_image_count,
-            'status' : self.status,
-        }
-        return d
-
-    def toJSON(self):
-        #return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
-        return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True)
-
-
-    @staticmethod
-    def create(url):
-        if url is not None:
-            for e in QueueEntity.entity_list:
-                if e.url == url: # already exists
-                    return None
-
-            entity = QueueEntity()
-            entity.url = url
-            return entity
-
-    # def add(self, url):
-    #     e = QueueEntityEpisode()
-    #     e.title = self.title
-    #     e.artist = self.artist
-    #     e.url = self.url
-    #     e.index = len(self.episodes)
-    #     e.queue_index = self.index
-    #     self.episodes.append(e)
-
 
 class LogicQueue(object):
     download_queue = None
@@ -105,21 +45,12 @@ class LogicQueue(object):
 
 
     @staticmethod
-    def plugin_unload():
-        try:
-            logger.debug('%s plugin_unload', package_name)
-        except Exception as e:
-            logger.error('Exception:%s', e)
-            logger.error(traceback.format_exc())
-
-
-    @staticmethod
     def download_thread_function():
         while True:
             try:
                 entity = LogicQueue.download_queue.get()
-                logger.debug('Queue receive item: %s', entity.url)
-                LogicGalleryDL.download(entity)    # TODO: 여기서 다운로드
+                logger.debug('Queue receive item:%s %s', entity['url'])
+                LogicGalleryDL.download(entity)
                 LogicQueue.download_queue.task_done()    
             except Exception as e: 
                 logger.error('Exception:%s', e)
@@ -128,22 +59,27 @@ class LogicQueue(object):
     @staticmethod
     def add_queue(url):
         try:
-            entity = QueueEntity.create(url)
+            entity = ModelGalleryDlItem.init(url)
             if entity is not None:
+                for idx, e in enumerate(LogicQueue.entity_list):
+                    if e['url'] == entity['url']:
+                        del LogicQueue.entity_list[idx]
+                        #return
+                LogicQueue.entity_list.append(entity)
                 LogicQueue.download_queue.put(entity)
+            return entity
         except Exception as e:
-            logger.error('Exception: %s', e)
+            logger.error('Exception:%s', e)
             logger.error(traceback.format_exc())
-
     
     @staticmethod
     def completed_remove():
         try:
             new_list = []
-            for e in QueueEntity.entity_list:
-                if e.status not in ['완료', '중복']:
+            for e in LogicQueue.entity_list:
+                if e['status'] not in ['완료', '중복']:
                     new_list.append(e)
-            QueueEntity.entity_list = new_list
+            LogicQueue.entity_list = new_list
             import plugin
             plugin.send_queue_list()
         except Exception as e:
@@ -156,12 +92,10 @@ class LogicQueue(object):
         try:
             with LogicQueue.download_queue.mutex:
                 LogicQueue.download_queue.queue.clear()
-            QueueEntity.entity_list = []
+            LogicQueue.entity_list = []
             import plugin
             plugin.send_queue_list()
-            LogicNormal.stop()
+            #LogicMD.stop()
         except Exception as e:
             logger.error('Exception:%s', e)
             logger.error(traceback.format_exc())
-
-
