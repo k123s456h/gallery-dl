@@ -1,0 +1,78 @@
+https://kurtbestor.pythonanywhere.com/h_data
+
+{
+"version":
+    "0.2",
+"referer":
+    null,
+"urls":
+    [
+    ["galleries0.json", "http://kurtbestor.pythonanywhere.com/static2/h_data/galleries0.json"],
+    ["galleries1.json", "http://kurtbestor.pythonanywhere.com/static2/h_data/galleries1.json"],
+    ["galleries2.json", "http://kurtbestor.pythonanywhere.com/static2/h_data/galleries2.json"],
+    ["galleries3.json", "http://kurtbestor.pythonanywhere.com/static2/h_data/galleries3.json"],
+    ["galleries4.json", "http://kurtbestor.pythonanywhere.com/static2/h_data/galleries4.json"],
+    ["galleries5.json", "http://kurtbestor.pythonanywhere.com/static2/h_data/galleries5.json"],
+    ["galleries6.json", "http://kurtbestor.pythonanywhere.com/static2/h_data/galleries6.json"],
+    ["galleries7.json", "http://kurtbestor.pythonanywhere.com/static2/h_data/galleries7.json"],
+    ["galleries8.json", "http://kurtbestor.pythonanywhere.com/static2/h_data/galleries8.json"],
+    ["galleries9.json", "http://kurtbestor.pythonanywhere.com/static2/h_data/galleries9.json"],
+    ["galleries10.json", "http://kurtbestor.pythonanywhere.com/static2/h_data/galleries10.json"],
+    ["galleries11.json", "http://kurtbestor.pythonanywhere.com/static2/h_data/galleries11.json"],
+    ["galleries12.json", "http://kurtbestor.pythonanywhere.com/static2/h_data/galleries12.json"],
+    ["galleries13.json", "http://kurtbestor.pythonanywhere.com/static2/h_data/galleries13.json"],
+    ["galleries14.json", "http://kurtbestor.pythonanywhere.com/static2/h_data/galleries14.json"],
+    ["galleries15.json", "http://kurtbestor.pythonanywhere.com/static2/h_data/galleries15.json"],
+    ["galleries16.json", "http://kurtbestor.pythonanywhere.com/static2/h_data/galleries16.json"],
+    ["galleries17.json", "http://kurtbestor.pythonanywhere.com/static2/h_data/galleries17.json"],
+    ["galleries18.json", "http://kurtbestor.pythonanywhere.com/static2/h_data/galleries18.json"],
+    ["galleries19.json", "http://kurtbestor.pythonanywhere.com/static2/h_data/galleries19.json"]
+    ],
+"urls_zip":
+    [
+    ["galleries0.json", "http://kurtbestor.pythonanywhere.com/static2/h_data/galleries0.zip"],
+    ["galleries1.json", "http://kurtbestor.pythonanywhere.com/static2/h_data/galleries1.zip"],
+    ["galleries2.json", "http://kurtbestor.pythonanywhere.com/static2/h_data/galleries2.zip"],
+    ["galleries3.json", "http://kurtbestor.pythonanywhere.com/static2/h_data/galleries3.zip"],
+    ["galleries4.json", "http://kurtbestor.pythonanywhere.com/static2/h_data/galleries4.zip"],
+    ["galleries5.json", "http://kurtbestor.pythonanywhere.com/static2/h_data/galleries5.zip"],
+    ["galleries6.json", "http://kurtbestor.pythonanywhere.com/static2/h_data/galleries6.zip"],
+    ["galleries7.json", "http://kurtbestor.pythonanywhere.com/static2/h_data/galleries7.zip"],
+    ["galleries8.json", "http://kurtbestor.pythonanywhere.com/static2/h_data/galleries8.zip"],
+    ["galleries9.json", "http://kurtbestor.pythonanywhere.com/static2/h_data/galleries9.zip"],
+    ["galleries10.json", "http://kurtbestor.pythonanywhere.com/static2/h_data/galleries10.zip"],
+    ["galleries11.json", "http://kurtbestor.pythonanywhere.com/static2/h_data/galleries11.zip"],
+    ["galleries12.json", "http://kurtbestor.pythonanywhere.com/static2/h_data/galleries12.zip"],
+    ["galleries13.json", "http://kurtbestor.pythonanywhere.com/static2/h_data/galleries13.zip"],
+    ["galleries14.json", "http://kurtbestor.pythonanywhere.com/static2/h_data/galleries14.zip"],
+    ["galleries15.json", "http://kurtbestor.pythonanywhere.com/static2/h_data/galleries15.zip"],
+    ["galleries16.json", "http://kurtbestor.pythonanywhere.com/static2/h_data/galleries16.zip"],
+    ["galleries17.json", "http://kurtbestor.pythonanywhere.com/static2/h_data/galleries17.zip"],
+    ["galleries18.json", "http://kurtbestor.pythonanywhere.com/static2/h_data/galleries18.zip"],
+    ["galleries19.json", "http://kurtbestor.pythonanywhere.com/static2/h_data/galleries19.zip"]
+    ]
+}
+
+
+[
+  { 
+    "a":["seto yuuki"],
+    "l":"korean",
+    "n":"Chitose Ch. 4",
+    "t":[ "female:big breasts",
+          "female:blowjob",
+          "female:hidden sex", 
+          "female:schoolgirl uniform",
+          "female:sole female",
+          "female:sundress",
+          "female:sweating",
+          "full censorship",
+          "male:condom",
+          "male:muscle",
+          "male:sole male",
+          "male:sweating",
+          "multi-work series"],
+    "type":"manga",
+    "id":1682671
+  }
+]
