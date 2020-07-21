@@ -132,9 +132,13 @@ class ModelGalleryDlItem(db.Model):
     category = db.Column(db.String)
     url = db.Column(db.String)
     total_image_count = db.Column(db.Integer)
+    status = db.Column(db.Integer)
 
-    def __init__(self):
+    def __init__(self, url):
         self.created_time = datetime.now()
+        self.url = url
+        self.status = u"대기"
+
 
     def as_dict(self):
         ret = {x.name: getattr(self, x.name) for x in self.__table__.columns}

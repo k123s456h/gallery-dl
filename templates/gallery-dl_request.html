@@ -31,8 +31,7 @@ $("body").on('click', '#download_btn', function(e){
     dataType: "json",
     success: function (ret) {
       if (ret) {
-        //window.open('/manamoa/queue');
-        window.location.href = '/gallery-dl/queue'
+        // window.location.href = '/'+package_name+'/queue'
         $.notify('<strong>큐에 추가하였습니다.</strong>', {
           type: 'success'
         });

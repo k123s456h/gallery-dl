@@ -68,9 +68,9 @@ class QueueEntity:
         if url is not None:
             for e in QueueEntity.entity_list:
                 if e.url == url: # already exists
-                    return
-            entity = QueueEntity()
+                    return None
 
+            entity = QueueEntity()
             entity.url = url
             return entity
 
@@ -141,7 +141,7 @@ class LogicQueue(object):
         try:
             new_list = []
             for e in QueueEntity.entity_list:
-                if e.status not in ['완료', '제외']:
+                if e.status not in ['완료', '중복']:
                     new_list.append(e)
             QueueEntity.entity_list = new_list
             import plugin
@@ -164,4 +164,4 @@ class LogicQueue(object):
             logger.error('Exception:%s', e)
             logger.error(traceback.format_exc())
 
-            
+

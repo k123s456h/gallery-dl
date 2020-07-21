@@ -33,14 +33,15 @@ $(document).ready(function(){
   });
 
   socket.on('queue_one', function(data){
+    console.log(data.title, data.url, data.index)
     str = make_queue_one(data)
-    document.getElementById("queue_"+data.static_index+'_div').innerHTML = str;
+    document.getElementById("queue_"+data.static_index+"_div").innerHTML = m_hr(0) + str;
   });
 
   socket.on('change_status', function(data){
-    elem = document.getElementById("queue_"+data.static_index+'_div')
+    console.log(data.title, data.url, data.index)
     str = make_queue_one(data);
-    elem.innerHTML = str;
+    document.getElementById("queue_" + data.static_index + '_div').innerHTML = str;
   })
 });
 
@@ -84,6 +85,7 @@ function make_queue_one(data) {
   str += m_col(1, pages)
   str += m_col(1, status)
   str += m_col(1, percent + "%")
+  str += m_row_end();
   return str
 }
 

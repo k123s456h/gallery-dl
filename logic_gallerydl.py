@@ -37,15 +37,14 @@ class LogicGalleryDL:
   @celery.task(bind=True)
   def make_download(self, entity):
     try:
-      entity.status = '다운로드 중'
-      LogicGalleryDL.entity_update('change_status', entity.as_dict())
+      entity.status = '메타데이터 수집 중'
+      LogicGalleryDL.update_ui(self, entity)
 
       url = entity.url
-
       info_json = LogicGalleryDL.get_info_json(url)
       if info_json == "invalid":
         entity.status='실패: url'
-        LogicGalleryDL.entity_update('change_status', entity.as_dict())
+        LogicGalleryDL.update_ui(self, entity)
         return False
       else:
         info_json_directory = info_json['directory']
@@ -74,8 +73,9 @@ class LogicGalleryDL:
         else:
           pass
         
-        LogicGalleryDL.entity_update('change_status', entity.as_dict())
-        logger.debug("%s\n%s\n%s\n%s\n%s", entity.url, entity.title, entity.artist, entity.parody, entity.total_image_count)
+        entity.status = '다운로드 중'
+        LogicGalleryDL.update_ui(self, entity)
+        logger.debug("%s\n%s\n%s\n%s\n%s", entity.url, entity.title, entity.status, entity.index, entity.static_index)
 
         user_agent = UserAgent(cache=False).random
         try:
@@ -86,14 +86,15 @@ class LogicGalleryDL:
           proc = Popen(commands, stdout=PIPE, stderr=STDOUT)
           for line in iter(proc.stdout.readline, b''):
             entity.index += 1
-            LogicGalleryDL.entity_update('change_status', entity.as_dict())
+            LogicGalleryDL.update_ui(self, entity)
             logger.debug("line: %s", line)
         except Exception as e:
           logger.error('Exception:%s', e)
           logger.error(traceback.format_exc())
 
         entity.status = '완료'
-        LogicGalleryDL.entity_update('change_status', entity.as_dict())
+        entity.index = entity.total_image_count
+        LogicGalleryDL.update_ui(self, entity)
         ModelGalleryDlItem.save(entity)
         return True
     except Exception as e: 
@@ -153,6 +154,27 @@ class LogicGalleryDL:
       import plugin
       # 'queue_one' ''change_status''
       plugin.socketio_callback(cmd, entity, encoding=False)
+  
+  @staticmethod
+  def update(arg):
+      logger.debug('FOR update : %s' % arg)
+      if arg['status'] == 'PROGRESS':
+        entity = arg['result']['data']
+        LogicGalleryDL.entity_update('change_status', entity.as_dict())
+        from .logic_queue import QueueEntity
+        for idx, e in enumerate(QueueEntity.entity_list):
+          logger.debug("searching...: %s ==? %s", e.url, entity.url)
+          if e.url == entity.url:
+              QueueEntity.entity_list[idx] = entity
+              break
+
+  @staticmethod
+  def update_ui(celery_is, entity):
+      if app.config['config']['use_celery']:
+          celery_is.update_state(state='PROGRESS', meta={'data':entity})
+      else:
+          LogicGalleryDL.entity_update(entity)
+
 
   @staticmethod
   def download(entity):
@@ -169,15 +191,30 @@ class LogicGalleryDL:
               is_in_completed_list = ModelGalleryDlItem.get(entity.url)
               if is_in_completed_list is None:
 
+                  # if app.config['config']['use_celery']:
+                  #     isSuccess = LogicGalleryDL.make_download.apply_async((entity,)).get()
+                  #     if isSuccess:
+                  #       LogicGalleryDL.update(entity)
+                  #     else:
+                  #       LogicGalleryDL.entity_update(entity)
+                  #     LogicGalleryDL.entity_update('change_status', entity.as_dict())
+                  # else:
+                  #   LogicGalleryDL.make_download(None, entity)
+                  #   LogicGalleryDL.entity_update('change_status', entity.as_dict())
+
+
                   if app.config['config']['use_celery']:
-                      isSuccess = LogicGalleryDL.make_download.apply_async((entity,)).get()
-                      # if isSuccess:
-                      #   LogicGalleryDL.update(entity)
-                      # else:
-                      #   LogicGalleryDL.entity_update(entity)
-                      LogicGalleryDL.entity_update('change_status', entity.as_dict())
+                    result = LogicGalleryDL.make_download.apply_async((entity,))
+                    #result.get()
+                    try:
+                        result.get(on_message=LogicGalleryDL.update, propagate=True)
+                    except:
+                        logger.debug('CELERY on_message not process.. start with no CELERY')
+                        LogicGalleryDL.make_download(None, entity)
+                        LogicGalleryDL.entity_update('change_status', entity.as_dict())
                   else:
                     LogicGalleryDL.make_download(None, entity)
+                    LogicGalleryDL.entity_update('change_status', entity.as_dict())
 
               else:
                   entity.status = '중복'  
