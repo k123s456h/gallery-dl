@@ -190,6 +190,10 @@ def ajax(sub):
             logger.debug('gallery-dl uninstalling...')
             Logic.uninstall()
             return jsonify(True)
+        elif sub == 'default_setting':
+            logger.debug('restore default gallery-dl.conf...')
+            Logic.restore_setting()
+            return jsonify(True)
     except Exception as e: 
         logger.error('Exception:%s', e)
         logger.error(traceback.format_exc())  

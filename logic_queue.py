@@ -50,7 +50,13 @@ class LogicQueue(object):
             try:
                 entity = LogicQueue.download_queue.get()
                 logger.debug('Queue receive item:%s %s', entity['url'])
-                LogicGalleryDL.download(entity)
+
+                if entity['status'] == '완료':
+                    entity['status'] = '중복'
+                    entity['index'] = int(entity['total_image_count'])
+                    LogicGalleryDL.update_state('queue_one', entity)
+                else:
+                    LogicGalleryDL.download(entity)
                 LogicQueue.download_queue.task_done()    
             except Exception as e: 
                 logger.error('Exception:%s', e)

@@ -157,7 +157,7 @@ class LogicGalleryDL:
   @staticmethod
   def entity_update(cmd, entity):
       import plugin
-      # 'queue_one' ''change_status''
+      # 'queue_one'
       plugin.socketio_callback(cmd, entity, encoding=False)
   
   @staticmethod
@@ -168,7 +168,7 @@ class LogicGalleryDL:
 
         logger.debug('safsfasdf: %s', entity)
 
-        LogicGalleryDL.entity_update('change_status', entity)
+        LogicGalleryDL.entity_update('queue_one', entity)
         from .logic_queue import LogicQueue
         for idx, e in enumerate(LogicQueue.entity_list):
           if e['url'] == entity['url']:
@@ -180,36 +180,29 @@ class LogicGalleryDL:
       if app.config['config']['use_celery']:
           celery_is.update_state(state='PROGRESS', meta={'data':entity})
       else:
-          LogicGalleryDL.entity_update(entity)
-
+          LogicGalleryDL.entity_update('queue_one', entity)
 
   @staticmethod
   def download(entity):
       LogicGalleryDL.stop_flag = False
       try:
-          url = entity['url']
-          url = None if url == '' else url
-          if url is not None:
-              if LogicGalleryDL.stop_flag == True:
-                return
+        if LogicGalleryDL.stop_flag == True:
+          return
 
+        LogicGalleryDL.entity_update('queue_one', entity)
+
+        if app.config['config']['use_celery']:
+          result = LogicGalleryDL.make_download.apply_async((entity,))
+          #result.get()
+          try:
+              result.get(on_message=LogicGalleryDL.update, propagate=True)
+          except:
+              logger.debug('CELERY on_message not process.. start with no CELERY')
+              LogicGalleryDL.make_download(None, entity)
               LogicGalleryDL.entity_update('queue_one', entity)
-
-              if app.config['config']['use_celery']:
-                result = LogicGalleryDL.make_download.apply_async((entity,))
-                #result.get()
-                try:
-                    result.get(on_message=LogicGalleryDL.update, propagate=True)
-                except:
-                    logger.debug('CELERY on_message not process.. start with no CELERY')
-                    LogicGalleryDL.make_download(None, entity)
-                    LogicGalleryDL.entity_update('change_status', entity)
-              else:
-                LogicGalleryDL.make_download(None, entity)
-                LogicGalleryDL.entity_update('change_status', entity)
-          else:
-              entity['status'] = '실패: url'
-              LogicGalleryDL.entity_update('change_status', entity)
+        else:
+          LogicGalleryDL.make_download(None, entity)
+          LogicGalleryDL.entity_update('queue_one', entity)
       except Exception as e: 
               logger.error('Exception:%s', e)
               logger.error(traceback.format_exc())

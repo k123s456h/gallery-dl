@@ -2,7 +2,7 @@
 
 # TODO:
 중복체크 해야함
-로그 깔끔하게 정리
+로그 깔끔하게 정리 // 해결함
 queue페이지에서 socket통신 안되는거 해결 // 해결함 
 
 # 로직 구성도
@@ -30,5 +30,9 @@ logic_queue.py -> add_queue -> {
 logic_queue.py -> download_thread_function -> {
   download_queue에서 하나 꺼내서 다운로드하고 tack_done()상태로
   LogicGalleryDL.download(entity)
+
+} ->
+
+logic_gallerydl.py -> download -> {
 
 }

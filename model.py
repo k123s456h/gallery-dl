@@ -150,17 +150,18 @@ class ModelGalleryDlItem(db.Model):
         ret['created_time'] = self.created_time.strftime('%m-%d %H:%M:%S') 
         return ret
     
-    @staticmethod
-    def save(entity):
-        m = ModelGalleryDlItem()
-        m.title = entity.title
-        m.artist = entity.artist
-        m.parody = entity.parody
-        m.category = entity.category
-        m.total_image_count = entity.total_image_count
-        m.url = entity.url
-        db.session.add(m)
-        db.session.commit()
+    # @staticmethod
+    # def save(entity):
+    #     m = ModelGalleryDlItem()
+    #     m.title = entity.title
+    #     m.artist = entity.artist
+    #     m.parody = entity.parody
+    #     m.category = entity.category
+    #     m.total_image_count = entity['total_image_count']
+    #     m.url = entity['url']
+    #     m.status = entity['status']
+    #     db.session.add(m)
+    #     db.session.commit()
 
     @staticmethod
     def save_as_dict(d):
@@ -184,7 +185,11 @@ class ModelGalleryDlItem(db.Model):
     @staticmethod
     def get(url):
         try:
-            return db.session.query(ModelGalleryDlItem).filter_by(url=url).first()
+            entity = db.session.query(ModelGalleryDlItem).filter_by(url=url).first()
+            if entity is not None:
+                return entity.as_dict()
+            else:
+                return None
         except Exception as e:
             logger.error('Exception:%s %s', e, url)
             logger.error(traceback.format_exc())
@@ -200,10 +205,23 @@ class ModelGalleryDlItem(db.Model):
                 entity.status = u'대기'
                 db.session.add(entity)
                 db.session.commit()
-            #else:
-            #    if entity.status > 10:
-            #        return None
+            # else:
+            #     if entity.status == '완료':
+            #         return None
             return entity.as_dict()
         except Exception as e:
             logger.error('Exception:%s', e)
             logger.error(traceback.format_exc())
+    
+    @staticmethod
+    def delete(id):
+        try:
+            item = db.session.query(ModelGalleryDlItem).filter_by(id=id).first()
+            if item is not None:
+                db.session.delete(item)
+                db.session.commit()
+            return True
+        except Exception, e:
+            logger.error('Exception:%s', e)
+            logger.error(traceback.format_exc())
+            return False

@@ -224,7 +224,27 @@ class Logic(object):
             logger.error('Exception: %s', e)
             logger.error(traceback.format_exc())
 
+    @staticmethod
+    def restore_setting():
+        try:
+            def func():
+                import system
 
+                old_config = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'gallery-dl.conf')
+                default_config = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'bin/gallery-dl-default.conf')
+                commands = [
+                    ['msg', u'잠시만 기다려주세요.']
+                    ['cp', default_config, old_config],
+                    ['msg', u'복원이 완료되었습니다. 새로고침하세요.']
+                ]
+
+                system.SystemLogicCommand.start('복원', commands)
+            t = threading.Thread(target=func, args=())
+            t.setDaemon(True)
+            t.start()
+        except Exception as e:
+            logger.error('Exception: %s', e)
+            logger.error(traceback.format_exc())
     ##################################################################
 
     @staticmethod
@@ -234,7 +254,7 @@ class Logic(object):
             url = None if url == '' else url
             from logic_queue import LogicQueue
             if url is not None:
-                LogicQueue.add_queue(url) # TODO:
+                LogicQueue.add_queue(url)
             else:
                 return False
             return True

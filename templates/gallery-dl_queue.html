@@ -35,14 +35,12 @@ $(document).ready(function(){
   socket.on('queue_one', function(data){
     //console.log(data)
     str = make_queue_one(data)
-    document.getElementById("queue_"+data['id']+"_div").innerHTML = m_hr(0) + str;
+    let element = document.getElementById("queue_" + data['id'] + "_div")
+    if(element.previousSibling != null){
+      str = m_hr(0) + str
+    }
+    element.innerHTML = str;
   });
-
-  socket.on('change_status', function(data){
-    //console.log(data)
-    str = make_queue_one(data);
-    document.getElementById("queue_" + data['id'] + '_div').innerHTML = str;
-  })
 });
 
 function on_queue_list(data) {
@@ -70,11 +68,11 @@ function make_queue_one(data) {
   pages = data['total_image_count']*1
   status = data['status']
   if( pages == 0 ){
-    percent = "0"
+    percent = 0
   }else{
     percent = data['index']*100 / pages;
     percent = parseInt(percent)
-    if(percent > 100){
+    if(percent >= 100 || status == '완료'){
       percent = 100
     }
   }
