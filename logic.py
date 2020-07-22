@@ -103,6 +103,8 @@ class Logic(object):
     def scheduler_function():
         try:
             pass
+            # logic_hitomi에서 스케쥴러 하나
+            # logic_gallerydl - LogicScheduler에서 스케쥴러 하나
             # from .logic_normal import LogicNormal
             # LogicNormal.scheduler_function()
         except Exception as e:

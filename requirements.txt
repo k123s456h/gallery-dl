@@ -1,6 +1,2 @@
 requests
-cfscrape
-bs4
-discord_webhook
-googledrivedownloader
-pillow
+fake_useragent

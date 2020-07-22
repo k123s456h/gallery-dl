@@ -132,8 +132,7 @@ class ModelGalleryDlItem(db.Model):
     category = db.Column(db.String)
     url = db.Column(db.String)
     total_image_count = db.Column(db.Integer)
-    index = db.Column(db.Integer)
-    status = db.Column(db.Integer)
+    status = db.Column(db.String)
 
     def __init__(self):
         self.created_time = datetime.now()

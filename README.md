@@ -36,3 +36,12 @@ logic_queue.py -> download_thread_function -> {
 logic_gallerydl.py -> download -> {
 
 }
+
+
+스케쥴러
+1. json파일 다운로드
+logic_hitomi.py
+scheduler_function()
+
+2. 특정 url 자동 다운로드
+logic_gallerydl.py - LogicScheduler
