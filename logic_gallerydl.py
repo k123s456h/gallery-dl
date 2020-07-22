@@ -76,7 +76,7 @@ class LogicGalleryDL:
         
         entity['status'] = '다운로드 중'
         LogicGalleryDL.update_ui(self, entity)
-        logger.debug("%s\n%s\n%s\n%s\n%s", entity['url'], entity['title'], entity['status'], entity['index'], entity['id'])
+        # logger.debug("%s\n%s\n%s\n%s\n%s", entity['url'], entity['title'], entity['status'], entity['index'], entity['id'])
 
         user_agent = UserAgent(cache=False).random
         index = 0
@@ -90,13 +90,13 @@ class LogicGalleryDL:
             index += 1
             entity['index'] = index
             LogicGalleryDL.update_ui(self, entity)
-            logger.debug("line: %s", line)
+            # logger.debug("line: %s", line)
         except Exception as e:
           logger.error('Exception:%s', e)
           logger.error(traceback.format_exc())
 
         entity['status'] = '완료'
-        entity['index'] = entity['total_image_count'] * 1
+        entity['index'] = int(entity['total_image_count'])
         LogicGalleryDL.update_ui(self, entity)
         ModelGalleryDlItem.save_as_dict(entity)
         return True
@@ -146,6 +146,8 @@ class LogicGalleryDL:
               info_json[keyword_type][keyword_name] = raw_info[idx].strip().decode('utf-8')
             else:
               info_json[keyword_type][keyword_name].append(raw_info[idx][4:].strip().decode('utf-8'))
+      
+      logger.debug("%s info: %s", url, info_json)
       return info_json
     except Exception as e:
       logger.error('Exception: returncode: %s', e.returncode)

@@ -32,11 +32,11 @@ $("body").on('click', '#download_btn', function(e){
     success: function (ret) {
       if (ret) {
         // window.location.href = '/'+package_name+'/queue'
-        $.notify('<strong>큐에 추가하였습니다.</strong>', {
+        $.notify(`<strong>${url.slice(0,30)}...을(를)<br>큐에 추가하였습니다.</strong>`, {
           type: 'success'
         });
       } else {
-        $.notify('<strong>큐 추가 실패</strong>', {
+        $.notify(`<strong>${url.slice(0,30)}...을(를)<br>큐 추가 실패</strong>`, {
           type: 'warning'
         });
       }

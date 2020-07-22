@@ -33,13 +33,13 @@ $(document).ready(function(){
   });
 
   socket.on('queue_one', function(data){
-    console.log(data['title'], data['url'], data['index'])
+    //console.log(data)
     str = make_queue_one(data)
     document.getElementById("queue_"+data['id']+"_div").innerHTML = m_hr(0) + str;
   });
 
   socket.on('change_status', function(data){
-    console.log(data)
+    //console.log(data)
     str = make_queue_one(data);
     document.getElementById("queue_" + data['id'] + '_div').innerHTML = str;
   })
