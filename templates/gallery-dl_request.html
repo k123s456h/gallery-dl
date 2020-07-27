@@ -2,22 +2,199 @@
 {% block content %}
 
 <div>
-  {{ macros.setting_input_text_and_buttons('url', 'url', [['download_btn', '다운로드']], 
-    value='https://www.mangahere.cc/manga/kaguya_sama_wa_kokurasetai_tensai_tachi_no_renai_zunousen/c195', desc='다운로드', col='6') }}
 
-    {{ macros.info_text('', '', value=['https://hitomi.la/doujinshi/victim-girls-24-a-sleeping,-sassy-little-sadistic-shit-english-1684243.html',
-      'https://hitomi.la/doujinshi/motenai-kara-konosai-ossan-demo-nandemo!-%7C-i-don-t-care-if-it-s-an-old-man-or-whatever-because-i-m-not-popular!--decensored--english-1674934.html',
-      'https://hitomi.la/doujinshi/uchi-no-imouto-selection--decensored--english-1635456.html',
-      'https://hitomi.la/doujinshi/days-of-your--decensored--english-1619247.html',
-      'https://e-hentai.org/g/1686894/f5b8b06a25/',
-      'https://e-hentai.org/g/1686013/6109a79714/',
-      'https://e-hentai.org/g/1680274/ce6733a9d4/',
-      'https://e-hentai.org/g/1683349/aa2bf79386/',
-      'https://e-hentai.org/g/1676325/211e69368f/'  ], desc='test set') }}
+  <nav>
+    {{ macros.m_tab_head_start() }}
+    {{ macros.m_tab_head2('normal', '일반', true) }}
+    {{ macros.m_tab_head2('hitomi', '히토미', false) }}
+    {{ macros.m_tab_head_end() }}
+
+
+  </nav>
+
+  <div class='tab-content', id='nav-tabContent'>
+    {{ macros.m_tab_content_start('normal', true) }}
+    {{ macros.setting_input_text_and_buttons('url', 'url', [['download_btn', '다운로드']], 
+        value='https://www.mangahere.cc/manga/kaguya_sama_wa_kokurasetai_tensai_tachi_no_renai_zunousen/c195', desc='다운로드', col='6') }}
+    {{ macros.m_tab_content_end() }}
+
+    {{ macros.m_tab_content_start('hitomi', false) }}
+    <div class="row">
+      <div class="col-8 row list-group">
+        <div class="row">
+          <div class="col-sm-5 set-left"><strong>제목</strong></div>
+          <input id="title" name='title' type="text" class="list-group-item form-control form-control-sm col-sm-6"
+            style="padding: .25rem .5rem;" value="">
+        </div>
+        <div class="row">
+          <div class="col-sm-5 set-left"><strong>작가</strong></div>
+          <input id="artist" type="text" class="list-group-item form-control form-control-sm col-sm-6"
+            style="padding: .25rem .5rem;" value="">
+        </div>
+        <div class="row">
+          <div class="col-sm-5 set-left"><strong>그룹</strong></div>
+          <input id="group" type="text" class="list-group-item form-control form-control-sm col-sm-6"
+            style="padding: .25rem .5rem;" value="">
+        </div>
+        <div class="row">
+          <div class="col-sm-5 set-left"><strong>태그</strong></div>
+          <input id="tags" type="text" class="list-group-item form-control form-control-sm col-sm-6"
+            style="padding: .25rem .5rem;" value="">
+        </div>
+        <div class="row">
+          <div class="col-sm-5 set-left"><strong>종류</strong></div>
+          <input id="type" type="text" class="list-group-item form-control form-control-sm col-sm-6"
+            style="padding: .25rem .5rem;" value="">
+        </div>
+        <div class="row">
+          <div class="col-sm-5 set-left"><strong>캐릭터</strong></div>
+          <input id="character" type="text" class="list-group-item form-control form-control-sm col-sm-6"
+            style="padding: .25rem .5rem;" value="">
+        </div>
+        <div class="row">
+          <div class="col-sm-5 set-left"><strong>언어</strong></div>
+          <input id="language" type="text" class="list-group-item form-control form-control-sm col-sm-6"
+            style="padding: .25rem .5rem;" value="">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class='col align-self-start'>
+          <div style="padding-left:20px; padding-top:5px;">
+            <em>
+              구분자 ,
+            </em>
+          </div>
+        </div>
+        <div class="w-100"></div>
+        <div class="col-1 align-self-end">
+          <button id="search_btn" class="btn btn-sm btn-outline-success">검색</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="collapse" id="search_result">
+      {{ macros.m_hr_head_top() }}
+      {{ macros.m_row_start('5') }}
+      {{ macros.m_col(3,  macros.m_strong('썸네일')) }}
+      {{ macros.m_col(7,  macros.m_strong('제목')) }}
+      {{ macros.m_row_end() }}
+      {{ macros.m_hr_head_bottom() }}
+      <div id="search_result_list"></div>
+    </div>
+    {{ macros.m_tab_content_end() }}
+  </div>
 </div> <!--전체-->
 
 <script type="text/javascript">
-var package_name = 'gallery-dl';
+let package_name = 'gallery-dl';
+let current_data = null;
+let static_index = 0;
+
+$(document).ready(function(){
+  static_index = 0;
+  const protocol = window.location.protocol;
+  const socket = io.connect(protocol + "//" + document.domain + ":" + location.port + "/" + package_name);
+
+  socket.on('hitomi_queue_list', (data) => {
+    make_queue_list(data);
+  })
+
+  socket.on('hitomi_queue_one', (data) => {
+    console.log(data);
+    // str = make_queue_one(data)
+    // let element = document.getElementById('queue_'+static_index+'_div')
+    // if(element.previousSibling != null){
+    //   str = m_hr(0) + str
+    // }
+    // element.innerHTML = str;
+  })
+})
+
+function make_queue_list(data){
+  str = '';
+  for(i in data){
+    str += '<div id="queue_' + static_index + '_div">'
+    str += make_queue_one(data[i])
+    str += '</div>' //one
+    if (i != data.length - 1) str += m_hr(0);
+  }
+  document.getElementById("search_result_list").innerHTML = str;
+}
+
+function make_queue_one(data){ // TODO:
+  
+  tmp_r1 = m_row_start(padding=4)
+  tmp_r2 = m_row_start(padding=2)
+
+  img = '<img src='+data['thumbnail']+' class="img-fluid">'
+  title = data['title']
+  url = data['url']
+  tags = data['tags']
+  _type = data['type']
+  parody = data['parody']
+  character = data['character']
+  artist = data['artist']
+  group = data['group']
+  language = data['language']
+
+
+  str = m_row_start();
+  if (data.manga_id != null) {
+    tmp = '전체'
+    tmp2 = data.manga_id
+  } else {
+    tmp = '에피소드'
+    tmp2 = data.wr_id
+  }
+  str += m_col(1, tmp)
+  str += m_col(6, (data.title == null) ? '--' : data.title)
+  str += m_col(2, tmp2)
+  str += m_col(1, data.episodes.length)
+  str += m_col(1, data.status)
+  tmp = m_button('toggle_btn', 'Toggle', [{ 'key': 'index', 'value': data.index }]);
+  str += m_col(1, tmp)
+  str += m_row_end();
+  str += '<div id="toggle_' + data.index + '_div" class="collapse">'
+  for (j in data.episodes) {
+    str += '<div id="episode_' + data.index + '_' + data.episodes[j].index + '_div">'
+    str += make_episode(data.episodes[j])
+    str += '</div>'
+  }
+  str += '</div>' //epi
+  return str
+}
+
+
+$("body").on('click', '#search_btn', function (e) {
+  e.preventDefault();
+  
+  title = document.getElementById('title').value
+  artist = document.getElementById('artist').value
+  group = document.getElementById('group').value
+  tags = document.getElementById('tags').value
+  _type = document.getElementById('type').value
+  character = document.getElementById('character').value
+  language = document.getElementById('language').value
+
+  $.ajax({
+    url: '/' + package_name + '/ajax/search',
+    type: 'POST',
+    cache: false,
+    data: {
+      n:title, a:artist, g:group, t:tags,
+      type: _type, c:character, l:language
+    },
+    dataType: 'json'
+  });
+  $.notify(`<strong>검색 중 입니다...</strong>`, {
+    type: 'success'
+  });
+
+  $('#search_result').collapse('show')
+});
+
+
 
 $("body").on('click', '#download_btn', function(e){
   e.preventDefault();

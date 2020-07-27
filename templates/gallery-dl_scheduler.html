@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block content %}
+<div>
+  {{ macros.m_button_group([['global_setting_save_btn', '설정 저장']])}}
+  {{ macros.m_row_start('5') }}
+  {{ macros.m_row_end() }}
+  <nav>
+    {{ macros.m_tab_head_start() }}
+    {{ macros.m_tab_head2('normal', '일반', true) }}
+    {{ macros.m_tab_head_end() }}
+  </nav>
+  <form id='setting' name='setting'>
+    <div class="tab-content" id="nav-tabContent">
+      {{ macros.m_tab_content_start('normal', true) }}
+        {{ macros.setting_global_scheduler_button(arg['scheduler'], arg['is_running']) }}
+        {{ macros.setting_input_text('interval', '스케쥴링 실행 정보', value=arg['interval'], col='3', desc=['Inverval(minute 단위)이나 Cron 설정']) }}
+        {{ macros.setting_input_textarea('downlist_normal', '자동 다운로드 할 url', value=arg['downlist_normal'], row='10', desc=['구분자 엔터', '빈칸인 경우 모두 다운로드합니다.']) }}
+        {{ macros.setting_input_textarea('downlist_hitomi', '자동 다운로드 할 히토미 태그', value=arg['downlist_hitomi'], row='6',
+                    desc=['구분자 엔터', '값이 하나라도 리스트로 적어주세요. 리스트 내에서 구분자는 ,입니다. 값은 ""로 감싸주세요.', 
+                    '입력 형식: ', 
+                    'language:["korean"]    artist:["a", "b"]    tags:["c"]    parody:["d", "e", "f"]',
+                    'group:["zxc", "ewq"]    character:["this is name", "this is also name"]   type:["doujin"]',
+                    '히토미 자동 다운로더는 내부 구조상 자동 시작 설정이 되어있으면 스케쥴링 실행 시간과 관계 없이 매일 실행됩니다.',
+                    'data by kurtbestor']) }}
+        {{ macros.setting_input_textarea('blacklist_hitomi', '제외할 히토미 태그', value=arg['blacklist_hitomi'], row='6', desc=['구분자 엔터', '입력 형식은 위와 같습니다.', '히토미 자동 다운시 제외할 태그입니다.']) }}
+      {{ macros.m_tab_content_end() }}
+
+
+
+
+
+    </div>
+    <!--tab-content-->
+  </form>
+</div>
+<!--전체-->
+
+<script type="text/javascript">
+
+  let package_name = "{{ arg['package_name'] }}";
+  let is_installed = "{{ arg['is_installed'] }}" == "True" ? true : false;
+  let current_version = "{{ arg['current_version'] }}"
+  console.log(package_name, is_installed, current_version)
+
+  $(document).ready(function () {
+    $('[id^=gallery-dl]').each(function (index) {
+      use_collapse(this.id)
+    });
+  });
+
+  $("body").on('click', '#install_btn', function (e) {
+    $.get({
+      url: '/' + package_name + '/ajax/install',
+      success: function (data) {
+        command_modal_show('설치')
+      }
+    });
+  });
+
+  $("body").on('click', '#uninstall_btn', function (e) {
+    $.get({
+      url: '/' + package_name + '/ajax/uninstall',
+      success: function (data) {
+        command_modal_show('제거')
+      }
+    });
+  });
+
+  $("body").on('click', '#default_btn', function (e) {
+    $.get({
+      url: '/' + package_name + '/ajax/default_setting',
+      success: function (data) {
+        command_modal_show('복원')
+      }
+    });
+  });
+
+  $('[id^=gallery-dl]').change(function () {
+    use_collapse(this.id);
+  });
+
+
+  // $("body").on('click', '#uninstall_btn', function (e) {
+  //   $.ajax({
+  //     url: '/' + package_name + '/ajax/uninstall',
+  //     type: "POST",
+  //     cache: false,
+  //     data: {},
+  //     dataType: "json",
+  //     success: function (data) {
+  //       command_modal_show('제거')
+  //     }
+  //   });
+  // });
+
+</script>
+{% endblock %}

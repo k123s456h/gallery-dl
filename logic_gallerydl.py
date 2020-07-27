@@ -206,3 +206,18 @@ class LogicGalleryDL:
       except Exception as e: 
               logger.error('Exception:%s', e)
               logger.error(traceback.format_exc())
+
+  @staticmethod
+  def scheduler_function():
+      from logic_queue import LogicQueue
+      logger.debug('gallery-dl scheduler downlist_normal Start')
+      try:
+          downlist = ModelSetting.get('downlist_normal')
+          downlist = downlist.split('\n')
+          for url in downlist:
+            LogicQueue.add_queue(url)
+          import plugin
+          plugin.send_queue_list()
+      except Exception as e:
+          logger.error('Exception:%s', e)
+          logger.error(traceback.format_exc())

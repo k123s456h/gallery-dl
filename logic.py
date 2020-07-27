@@ -29,12 +29,11 @@ class Logic(object):
         'db_version' : '1',
         'auto_start': 'False',
         'interval': '120',
-        'htm_interval': '360',
-        'htm_last_update': '1970-01-01',
-        'pagecount': '1',
-        'downlist': '',
-        'blacklist': '',
-        'all_download': 'False',
+        'downlist_normal': '',
+        'downlist_hitomi': 'language:["korean"]',
+        'blacklist_hitomi': '',
+        'hitomi_last_time': "1970-01-01 00:00:01",
+        'hitomi_last_num': "-1"
     }
 
 
@@ -59,11 +58,21 @@ class Logic(object):
             Logic.db_init()
             # 자동시작 옵션이 있으면 보통 여기서
             if ModelSetting.get_bool('auto_start'):
-                Logic.scheduler_start()
+                Logic.scheduler_start()        
             # 편의를 위해 json 파일 생성
             from plugin import plugin_info
             Util.save_from_dict_to_json(plugin_info, os.path.join(os.path.dirname(__file__), 'info.json'))
             LogicQueue.queue_start()
+
+            # hitomi 데이터 다운로드
+            from datetime import datetime
+            before = ModelSetting.get('hitomi_last_time')
+            if(datetime.now() - datetime.strptime(before, '%Y-%m-%d %H:%M:%S')).days >= 1:
+                from .logic_hitomi import LogicHitomi
+                LogicHitomi.download_json()
+                if ModelSetting.get_bool('auto_start'):
+                    from .logic_hitomi import LogicHitomi
+                    LogicHitomi.scheduler_function()
         except Exception as e:
             logger.error('Exception:%s', e)
             logger.error(traceback.format_exc())
@@ -81,6 +90,7 @@ class Logic(object):
     @staticmethod
     def scheduler_start():
         try:
+            # 자동 다운로드 (일반)
             logger.debug('%s scheduler_start', package_name)
             interval = ModelSetting.get('interval')
             job = Job(package_name, package_name, interval, Logic.scheduler_function, u"gallery-dl", False)
@@ -102,11 +112,10 @@ class Logic(object):
     @staticmethod
     def scheduler_function():
         try:
-            pass
-            # logic_hitomi에서 스케쥴러 하나
+            # logic_hitomi <- 얘는 json 업데이트할때 판별
             # logic_gallerydl - LogicScheduler에서 스케쥴러 하나
-            # from .logic_normal import LogicNormal
-            # LogicNormal.scheduler_function()
+            from .logic_gallerydl import LogicGalleryDL
+            LogicNormal.scheduler_function()
         except Exception as e:
             logger.error('Exception:%s', e)
             logger.error(traceback.format_exc())

@@ -26,7 +26,7 @@ class ModelSetting(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     key = db.Column(db.String(100), unique=True, nullable=False)
     value = db.Column(db.String, nullable=False)
- 
+
     def __init__(self, key, value):
         self.key = key
         self.value = value
@@ -146,7 +146,7 @@ class ModelGalleryDlItem(db.Model):
 
     def as_dict(self):
         ret = {x.name: getattr(self, x.name) for x in self.__table__.columns}
-        ret['created_time'] = self.created_time.strftime('%m-%d %H:%M:%S') 
+        ret['created_time'] = self.created_time.strftime('%Y-%m-%d %H:%M:%S') 
         return ret
     
     # @staticmethod

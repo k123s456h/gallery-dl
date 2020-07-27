@@ -138,6 +138,15 @@ def ajax(sub):
             except Exception as e: 
                 logger.error('Exception:%s', e)
                 logger.error(traceback.format_exc())
+        elif sub == 'search':
+            try:
+                from .logic_hitomi import LogicHitomi
+                ret = LogicHitomi.search(request)
+                send_search_result(ret)
+                return jsonify({})
+            except Exception as e:
+                logger.error('Exception:%s', e)
+                logger.error(traceback.format_exc())
         elif sub == 'completed_remove':
             try:
                 from logic_queue import LogicQueue
@@ -263,3 +272,6 @@ def send_queue_list():
     #t = [x.as_dict() for x in tmp]
     #socketio_callback('queue_list', t, encoding=False)
     socketio_callback('queue_list', tmp, encoding=False)
+
+def send_search_result(data):
+    socketio_callback('hitomi_queue_one', data, encoding=False)
