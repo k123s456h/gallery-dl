@@ -2,18 +2,18 @@
 {% block content %}
 
 <div>
-  {{ macros.m_button_group([['reset_queue_btn', '초기화'], ['completed_remove_btn', '완료된 항목 삭제'], ['all_show_btn', '모두 확장'], ['all_hide_btn', '모두 축소']])}}
+  {{ macros.m_button_group([['reset_queue_btn', '초기화'], ['completed_remove_btn', '완료된 항목 삭제']])}}
   {{ macros.m_row_start('0') }}
   {{ macros.m_row_end() }}
 
   {{ macros.m_hr_head_top() }}
   {{ macros.m_row_start('5') }}
-  {{ macros.m_col(1,  macros.m_strong('분류')) }}
-  {{ macros.m_col(4,  macros.m_strong('제목')) }}
+  {{ macros.m_col(1,  macros.m_strong('Category')) }}
+  {{ macros.m_col(4,  macros.m_strong('Title')) }}
   {{ macros.m_col(4,  macros.m_strong('url')) }}
   {{ macros.m_col(1,  macros.m_strong('pages')) }}
-  {{ macros.m_col(1,  macros.m_strong('상태')) }}
-  {{ macros.m_col(1,  macros.m_strong('진행률')) }}
+  {{ macros.m_col(1,  macros.m_strong('Status')) }}
+  {{ macros.m_col(1,  macros.m_strong('Progress')) }}
   {{ macros.m_row_end() }}
   {{ macros.m_hr_head_bottom() }}
   <div id="queue_list_div"></div>
@@ -87,15 +87,15 @@ function make_queue_one(data) {
   return str
 }
 
-$("body").on('click', '#toggle_btn', function(e){
-  e.preventDefault();
-  index = $(this).data("index")
-  if ($('#toggle_'+index+'_div').hasClass('collapse show') == false) {
-    $('#toggle_' + index + '_div').collapse('show')
-  } else {
-    $('#toggle_' + index + '_div').collapse('hide')
-  }
-});
+// $("body").on('click', '#toggle_btn', function(e){
+//   e.preventDefault();
+//   index = $(this).data("index")
+//   if ($('#toggle_'+index+'_div').hasClass('collapse show') == false) {
+//     $('#toggle_' + index + '_div').collapse('show')
+//   } else {
+//     $('#toggle_' + index + '_div').collapse('hide')
+//   }
+// });
 
 $("body").on('click', '#completed_remove_btn', function(e){
   e.preventDefault();
@@ -122,14 +122,14 @@ $("body").on('click', '#reset_queue_btn', function(e){
   });
 });
 
-$("body").on('click', '#all_show_btn', function(e){
-  e.preventDefault();
-  $("div[id^='toggle_']").collapse('show')
-});
+// $("body").on('click', '#all_show_btn', function(e){
+//   e.preventDefault();
+//   $("div[id^='toggle_']").collapse('show')
+// });
 
-$("body").on('click', '#all_hide_btn', function(e){
-  e.preventDefault();
-  $("div[id^='toggle_']").collapse('hide')
-});
+// $("body").on('click', '#all_hide_btn', function(e){
+//   e.preventDefault();
+//   $("div[id^='toggle_']").collapse('hide')
+// });
 </script>
 {% endblock %}

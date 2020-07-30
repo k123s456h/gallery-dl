@@ -65,7 +65,8 @@ class LogicHitomi:
   @staticmethod
   def bundlejson():
     try:
-      bundlejsonurl = 'https://kurtbestor.pythonanywhere.com/h_data'
+      #bundlejsonurl = 'https://kurtbestor.pythonanywhere.com/h_data'
+      bundlejsonurl = 'http://k123s456h.pythonanywhere.com/h_data/info.json'
       res = LogicHitomi.get_response(bundlejsonurl)
       bundle_json = json.loads(res) 
       return bundle_json
@@ -76,6 +77,7 @@ class LogicHitomi:
   @staticmethod
   def download_json():
     try:
+      # ModelSetting.set('hitomi_json_pending', True)
       bundle_json = LogicHitomi.bundlejson()
 
       last_num = ""
@@ -83,9 +85,13 @@ class LogicHitomi:
         urllib.urlretrieve(url, os.path.join(LogicHitomi.basepath, name))
         last_num = name
       last_num = ''.join(x for x in last_num if x.isdigit())
+
+      # urllib.urlretrieve("http://k123s456h.pythonanywhere.com/h_data/meta.json",
+      # os.path.join(LogicHitomi.basepath, 'meta.json'))
       
       ModelSetting.set('hitomi_last_time', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
       ModelSetting.set('hitomi_last_num', last_num)
+      # ModelSetting.set('hitomi_json_pending', False)
     except Exception as e:
       logger.error('Exception:%s', e)
       logger.error(traceback.format_exc())
@@ -107,9 +113,9 @@ class LogicHitomi:
     galleries0_forbidden.json
     '''
 
-  
+
   @staticmethod
-  def find_gallery(condition, condition_negative):
+  def find_gallery(condition=[], condition_negative=[]):
     try:
       # condition: { key1:[val1], key2:[val2] }
       # key:
@@ -248,19 +254,49 @@ class LogicHitomi:
       logger.error('Exception:%s', e)
       logger.error(traceback.format_exc())
 
+
+  # pythonanywhere에서 실행
+  # @staticmethod
+  # def analyze_data(last_num=-1):
+  #   try:
+  #     types = ['a', 'g', 't', 'p', 'c', 'l', 'type']
+  #     meta = {
+  #       u"a": set([]),
+  #       u"g": set([]),
+  #       u"t": set([]),
+  #       u"p": set([]),
+  #       u"c": set([]),
+  #       u"l": set([]),
+  #       u"type": set([])
+  #     }
+  #     for num in range(0, last_num+1):
+  #       with open(os.path.join(LogicHitomi.basepath, 'galleries'+str(num)+'.json')) as galleries:
+  #         data = json.loads(galleries.read())
+  #         for gallery in data:
+  #           for key in gallery:
+  #             if key in ['a', 'g', 't', 'p', 'c']:
+  #               for value in gallery[key]:
+  #                 if value not in meta[key]:
+  #                   meta[key].add(value)
+  #             elif key in ['l', 'type']:
+  #               if gallery[key] is not None:
+  #                 if gallery[key] not in meta[key]:
+  #                   meta[key].add(gallery[key])
+  #         galleries.close()
+      
+  #     for _t in meta:
+  #       meta[_t] = list(meta[_t])
+
+  #     with open(os.path.join(LogicHitomi.basepath, 'meta.json'), 'w') as f:
+  #       json.dump(meta, f)
+  #       f.close()
+  #   except Exception as e:
+  #     import traceback
+  #     logger.error('Exception:%s', e)
+  #     logger.error(traceback.format_exc())
+
   @staticmethod
   def search(condition):
-    def remove(d, k):
-      r = dict(d)
-      del r[k]
-      return r
-    
-    condition = dict(condition)
-
-    for key in condition:
-      if len(condition[key].strip()) == 0:
-        condition = remove(condition, key)
-
     ret = []
     galleries = LogicHitomi.find_gallery(condition, [])
 
@@ -279,12 +315,218 @@ class LogicHitomi:
       ret.append(tmp)
 
     return ret
-'''
-["female:ahegao","female:big breasts","female:nakadashi","female:pasties","female:sole female","female:stockings","female:vtuber","group","male:big penis","male:eyemask","mosaic censorship","nijisanji"]
 
+
+  @staticmethod
+  def realtime_search(req):
+    condition = {}
+    condition['n'] = req.form['n'].split(',')
+    condition['a'] = req.form['a'].split(',')
+    condition['g'] = req.form['g'].split(',')
+    condition['t'] = req.form['t'].split(',')
+    condition['type'] = req.form['type'].split(',')
+    condition['c'] = req.form['c'].split(',')
+    condition['l'] = req.form['l'].split(',')
+    
+    condition_negative={} # TODO: modalsetting에서 불러오기
+
+    def remove(d, k):
+      r = dict(d)
+      del r[k]
+      return r
+
+    for key in condition:
+      if len(condition[key]) == 0:
+        condition = remove(condition, key)
+      elif len(condition[key]) == 1 and len(condition[key][0]) == 0:
+        condition = remove(condition, key)
+    
+    if len(condition) == 0:
+      return False
+
+    logger.debug("condition: %s", str(condition))
+
+    last_num = int(ModelSetting.get('hitomi_last_num'))
+    
+    with open(os.path.join(LogicHitomi.basepath, 'galleries0.json')) as galleries:
+      import json
+      json_item = json.loads(galleries.read())
+
+      for idx, gallery in enumerate(json_item):
+        try:
+          flag = True
+
+          for key, value in condition.items():  # AND
+            key = key.encode('utf-8')
+            value = [v.encode('utf-8').lower() for v in value]
+
+            if key not in gallery:
+              flag = False
+              break
+
+            if type(gallery[key]) != type([]):
+              tmp = []
+              tmp.append(str(gallery[key]))
+              tmp = [x for x in tmp if len(x)]
+              gallery[key] = tmp
+
+            if len([v for v in gallery[key] if v.strip().lower() in value]) == 0:
+              flag = False
+              break     
+
+          for key, value in condition_negative.items(): # NAND
+            if flag == False:
+              break
+            
+            key = key.encode('utf-8')
+            value = [v.encode('utf-8').lower() for v in value]
+
+            if key not in gallery:
+              continue
+
+            if type(gallery[key]) != type([]):
+              tmp = []
+              tmp.append(str(gallery[key]))
+              tmp = [x for x in tmp if len(x)]
+              gallery[key] = tmp
+
+            if len([v for v in gallery[key] if v.strip().lower() in value]) > 0:
+              flag = False
+              break
+            
+          if flag:
+            tmp = {}
+            keywords = ['n', 't', 'id', 'type', 'p', 'c', 'a', 'g', 'l']
+            tmp['thumbnail'] = ''
+            for keyword in keywords:
+              if keyword in gallery:
+                if keyword == 'id':
+                  tmp['id'] = gallery['id']
+                  tmp['url'] = LogicHitomi.baseurl + str(gallery['id']) + '.html'
+                else:
+                  tmp[keyword] = gallery[keyword]
+
+            from .plugin import send_search_result
+            send_search_result(tmp)
+            logger.debug('found item: %s', tmp['n'])
+        except Exception as e:
+          import traceback
+          logger.error('Exception:%s', e)
+          logger.error(traceback.format_exc())
+          # no such key for this item
+      
+      galleries.close()
+
+'''
+    for num in range(0, last_num + 1):
+      item = "galleries" + str(num) + ".json"
+      with open(os.path.join(LogicHitomi.basepath, item)) as galleries:
+        import json
+        json_item = json.loads(galleries.read())
+
+        for idx, gallery in enumerate(json_item):
+          try:
+            flag = True
+
+            for key, value in condition.items():  # AND
+              key = key.encode('utf-8')
+              value = [v.encode('utf-8').lower() for v in value]
+
+              if key not in gallery:
+                flag = False
+                break
+
+              if type(gallery[key]) != type([]):
+                gallery[key] = list(str(gallery[key]))
+
+              if len([v for v in gallery[key] if v.strip().lower() in value]) == 0:
+                flag = False
+                break            
+
+            for key, value in condition_negative.items(): # NAND
+              if flag == False:
+                break
+              
+              key = key.encode('utf-8')
+              value = [v.encode('utf-8').lower() for v in value]
+
+              if key not in gallery:
+                continue
+
+              if type(gallery[key]) != type([]):
+                gallery[key] = list(str(gallery[key]))
+
+              if len([v for v in gallery[key] if v.strip().lower() in value]) > 0:
+                flag = False
+                break
+              
+            if flag:
+              logger.debug('found item: %s', gallery['n'])
+              tmp = {}
+              keywords = ['n', 't', 'id', 'type', 'p', 'c', 'a', 'g', 'l']
+              tmp['thumbnail'] = ''
+              for keyword in keywords:
+                if keyword in gallery:
+                  if keyword == 'id':
+                    tmp['url'] = LogicHitomi.baseurl + str(gallery['id']) + '.html'
+                  else:
+                    tmp[keyword] = gallery[keyword]
+
+              from .plugin import send_search_result
+              send_search_result(tmp)
+          except Exception as e:
+            import traceback
+            logger.error('Exception:%s', e)
+            logger.error(traceback.format_exc())
+            # no such key for this item
+        
+        galleries.close()
+'''
+
+
+'''
     try:
       pass
     except Exception as e:
       logger.error('Exception:%s', e)
       logger.error(traceback.format_exc())
+'''
+'''
+1692965
+https://ltn.hitomi.la/galleries/__gallery_num__.js
+
+https://atn.hitomi.la/smalltn/7/0e/38de749c71e2f4eaa901477d510e8c9a506beae3175439707fb9670dfcc9b0e7.jpg
+atn, 7, 0e, 해쉬부분은 바뀜
+
+
+
+function url_from_url(url, base) {
+        return url.replace(/\/\/..?\.hitomi\.la\//, '//'+subdomain_from_url(url, base)+'.hitomi.la/');
+}
+
+function url_from_hash(galleryid, image, dir, ext) {
+        ext = ext || dir || image.name.split('.').pop();
+        dir = dir || 'images';
+        
+        return 'https://a.hitomi.la/'+dir+'/'+full_path_from_hash(image.hash)+'.'+ext;
+}
+
+function url_from_url_from_hash(galleryid, image, dir, ext, base) {
+        return url_from_url(url_from_hash(galleryid, image, dir, ext), base);
+}
+
+function image_url_from_image(galleryid, image, no_webp) {
+        var webp;
+        if (image['hash'] && image['haswebp'] && !no_webp) {
+                webp = 'webp';
+        }
+        
+        return url_from_url_from_hash(galleryid, image, webp);
+}
+
+이미지 주소(webp):
+image_url_from_image
+image_url_from_image("1693188", {"width":209,"hash":"38de749c71e2f4eaa901477d510e8c9a506beae3175439707fb9670dfcc9b0e7","haswebp":1,"name":"000.jpg","height":300,"hasavif":1}, null)
+
+image정보는 ltn.hitomi.la에서 가져올 수 있음
 '''

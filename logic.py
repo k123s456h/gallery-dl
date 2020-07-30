@@ -278,6 +278,8 @@ class Logic(object):
     @staticmethod
     def item_list(req):
         try:
+            from sqlalchemy import or_
+
             ret = {}
             page = 1
             page_size = 30
@@ -289,7 +291,12 @@ class Logic(object):
                 search = req.form['search_word']
             query = db.session.query(ModelGalleryDlItem)
             if search != '':
-                query = query.filter(ModelGalleryDlItem.title.like('%'+search+'%'))
+                #query = query.filter(ModelGalleryDlItem.title.like('%'+search+'%'))
+                query = query.filter(or_(ModelGalleryDlItem.title.like('%'+search+'%'),
+                                        ModelGalleryDlItem.url.like('%'+search+'%'),
+                                        ModelGalleryDlItem.category.like('%'+search+'%') ))
+
+
             query = query.order_by(desc(ModelGalleryDlItem.id))
             count = query.count()
             query = query.limit(page_size).offset((page-1)*page_size)

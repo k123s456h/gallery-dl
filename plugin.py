@@ -94,7 +94,7 @@ def first_menu(sub):
     elif sub == 'request':
         arg = ModelSetting.to_dict()
         arg['package_name']  = package_name
-        arg['is_installed'] = Logic.is_installed()
+        arg['is_installed'] = Logic.is_installed()  
         return render_template('{package_name}_{sub}.html'.format(package_name=package_name, sub=sub), arg=arg)
     elif sub == 'queue':
         arg = ModelSetting.to_dict()
@@ -138,11 +138,19 @@ def ajax(sub):
             except Exception as e: 
                 logger.error('Exception:%s', e)
                 logger.error(traceback.format_exc())
+        elif sub == 'h_data':
+            try:
+                with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'hitomi-data/meta.json'), 'r') as metadata:
+                    return jsonify(json.load(metadata))
+                    metadata.close()
+                return jsonify({})
+            except Exception as e:
+                logger.error('Exception:%s', e)
+                logger.error(traceback.format_exc())
         elif sub == 'search':
             try:
                 from .logic_hitomi import LogicHitomi
-                ret = LogicHitomi.search(request)
-                send_search_result(ret)
+                LogicHitomi.realtime_search(request)
                 return jsonify({})
             except Exception as e:
                 logger.error('Exception:%s', e)
@@ -177,20 +185,20 @@ def ajax(sub):
             except Exception as e: 
                 logger.error('Exception:%s', e)
                 logger.error(traceback.format_exc())
-        elif sub == 'list_all_download':
-            try:
-                ret = Logic.list_all_download(request)
-                return jsonify(ret)
-            except Exception as e: 
-                logger.error('Exception:%s', e)
-                logger.error(traceback.format_exc())
-        elif sub == 'list_add_blacklist':
-            try:
-                ret = Logic.list_add_blacklist(request)
-                return jsonify(ret)
-            except Exception as e: 
-                logger.error('Exception:%s', e)
-                logger.error(traceback.format_exc())
+        # elif sub == 'list_all_download':
+        #     try:
+        #         ret = Logic.list_all_download(request)
+        #         return jsonify(ret)
+        #     except Exception as e: 
+        #         logger.error('Exception:%s', e)
+        #         logger.error(traceback.format_exc())
+        # elif sub == 'list_add_blacklist':
+        #     try:
+        #         ret = Logic.list_add_blacklist(request)
+        #         return jsonify(ret)
+        #     except Exception as e: 
+        #         logger.error('Exception:%s', e)
+        #         logger.error(traceback.format_exc())
         elif sub == 'install':
             logger.debug('gallery-dl installing...')
             Logic.install()

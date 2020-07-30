@@ -20,8 +20,10 @@
   {{ macros.m_row_start('0') }}
   {{ macros.m_col(1,  macros.m_strong('ID')) }}
   {{ macros.m_col(2,  macros.m_strong('Created Time')) }}
-  {{ macros.m_col(6,  macros.m_strong('Title')) }}
-  {{ macros.m_col(3,  macros.m_strong('Action')) }}
+  {{ macros.m_col(4,  macros.m_strong('Title')) }}
+  {{ macros.m_col(1,  macros.m_strong('Category')) }}
+  {{ macros.m_col(3,  macros.m_strong('url')) }}
+  {{ macros.m_col(1,  macros.m_strong('Action')) }}
   {{ macros.m_row_end() }}
   {{ macros.m_hr_head_bottom() }}
   <div id="list_div"></div>
@@ -57,12 +59,14 @@ function make_list(data) {
     str += m_row_start();
     str += m_col(1, data[i].id);
     str += m_col(2, data[i].created_time);
-    str += m_col(6, data[i].title);
+    str += m_col(4, data[i].title);
+    str += m_col(1, data[i].category)
+    str += m_col(3, data[i].url);
     tmp = m_button('remove_btn', '기록 삭제', [{'key':'id', 'value':data[i].id}]);
-    tmp += m_button('all_download_btn', '전체 받기', [{'key':'id', 'value':data[i].id}]);
-    tmp += m_button('add_blacklist_btn', '제외 추가', [{'key':'id', 'value':data[i].id}]);
-    tmp = m_button_group(tmp)
-    str += m_col(3, tmp)
+    // tmp += m_button('all_download_btn', '전체 받기', [{'key':'id', 'value':data[i].id}]);
+    // tmp += m_button('add_blacklist_btn', '제외 추가', [{'key':'id', 'value':data[i].id}]);
+    // tmp = m_button_group(tmp)
+    str += m_col(1, tmp)
     str += m_row_end();
     if (i != data.length -1) str += m_hr();
   }
@@ -113,26 +117,26 @@ $("body").on('click', '#remove_btn', function(e){
   });
 });
 
-$("body").on('click', '#all_download_btn', function(e){
-  e.preventDefault();
-  id = $(this).data("id")
-  $.ajax({
-    url: '/' + package_name + '/ajax/list_all_download',
-    type: "POST",
-    cache: false,
-    data: {id:id},
-    dataType: "json",
-    success: function (ret) {
-      if (ret) {
-        $(location).attr('href', '/gallery-dl/queue')
-      } else {
-        $.notify('<strong>실패</strong>', {
-          type: 'warning'
-        });
-      }
-    }
-  });
-});
+// $("body").on('click', '#all_download_btn', function(e){
+//   e.preventDefault();
+//   id = $(this).data("id")
+//   $.ajax({
+//     url: '/' + package_name + '/ajax/list_all_download',
+//     type: "POST",
+//     cache: false,
+//     data: {id:id},
+//     dataType: "json",
+//     success: function (ret) {
+//       if (ret) {
+//         $(location).attr('href', '/gallery-dl/queue')
+//       } else {
+//         $.notify('<strong>실패</strong>', {
+//           type: 'warning'
+//         });
+//       }
+//     }
+//   });
+// });
 
 // $("body").on('click', '#add_blacklist_btn', function(e){ //TODO:
 //   e.preventDefault();

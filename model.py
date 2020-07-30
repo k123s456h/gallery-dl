@@ -142,7 +142,8 @@ class ModelGalleryDlItem(db.Model):
         self.category = ''
         self.url = ''
         self.total_image_count = 0
-        self.status = ''
+        self.status = 'done'
+        self.pending = 0
 
     def as_dict(self):
         ret = {x.name: getattr(self, x.name) for x in self.__table__.columns}

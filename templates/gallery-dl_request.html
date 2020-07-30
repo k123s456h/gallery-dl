@@ -20,54 +20,67 @@
 
     {{ macros.m_tab_content_start('hitomi', false) }}
     <div class="row">
-      <div class="col-8 row list-group">
+      <div class="col-7 row list-group">
         <div class="row">
           <div class="col-sm-5 set-left"><strong>제목</strong></div>
           <input id="title" name='title' type="text" class="list-group-item form-control form-control-sm col-sm-6"
-            style="padding: .25rem .5rem;" value="">
+            style="left: 15px; padding: .25rem .5rem;" value="">
         </div>
         <div class="row">
           <div class="col-sm-5 set-left"><strong>작가</strong></div>
+        <!--
           <input id="artist" type="text" class="list-group-item form-control form-control-sm col-sm-6"
             style="padding: .25rem .5rem;" value="">
+        -->
+          <select class="col-sm-7 input-box" id="a" multiple>
+          </select>
         </div>
         <div class="row">
           <div class="col-sm-5 set-left"><strong>그룹</strong></div>
-          <input id="group" type="text" class="list-group-item form-control form-control-sm col-sm-6"
-            style="padding: .25rem .5rem;" value="">
+          <!-- <input id="group" type="text" class="list-group-item form-control form-control-sm col-sm-6"
+            style="padding: .25rem .5rem;" value=""> -->
+            <select class="col-sm-7 input-box" id="g" multiple>
+            </select>
         </div>
         <div class="row">
           <div class="col-sm-5 set-left"><strong>태그</strong></div>
-          <input id="tags" type="text" class="list-group-item form-control form-control-sm col-sm-6"
-            style="padding: .25rem .5rem;" value="">
+          <!-- <input id="tags" type="text" class="list-group-item form-control form-control-sm col-sm-6"
+            style="padding: .25rem .5rem;" value=""> -->
+            <select class="col-sm-7 input-box" id="t" multiple>
+            </select>
         </div>
         <div class="row">
           <div class="col-sm-5 set-left"><strong>종류</strong></div>
-          <input id="type" type="text" class="list-group-item form-control form-control-sm col-sm-6"
-            style="padding: .25rem .5rem;" value="">
+          <!-- <input id="type" type="text" class="list-group-item form-control form-control-sm col-sm-6"
+            style="padding: .25rem .5rem;" value=""> -->
+            <select class="col-sm-7 input-box" id="type" multiple>
+            </select>
         </div>
         <div class="row">
           <div class="col-sm-5 set-left"><strong>캐릭터</strong></div>
-          <input id="character" type="text" class="list-group-item form-control form-control-sm col-sm-6"
-            style="padding: .25rem .5rem;" value="">
+          <!-- <input id="character" type="text" class="list-group-item form-control form-control-sm col-sm-6"
+            style="padding: .25rem .5rem;" value=""> -->
+            <select class="col-sm-7 input-box" id="c" multiple>
+            </select>
         </div>
         <div class="row">
           <div class="col-sm-5 set-left"><strong>언어</strong></div>
-          <input id="language" type="text" class="list-group-item form-control form-control-sm col-sm-6"
-            style="padding: .25rem .5rem;" value="">
+          <!-- <input id="language" type="text" class="list-group-item form-control form-control-sm col-sm-6"
+            style="padding: .25rem .5rem;" value=""> -->
+            <select class="col-sm-7 input-box" id="l" multiple>
+            </select>
         </div>
       </div>
 
       <div class="row">
-        <div class='col align-self-start'>
-          <div style="padding-left:20px; padding-top:5px;">
-            <em>
-              구분자 ,
-            </em>
+        <div class='col align-self-start' style="left:40%;">
+          <div>
+            <!-- 여기에 설명 작성 -->
+            <strong>구분자 |</strong>
           </div>
         </div>
         <div class="w-100"></div>
-        <div class="col-1 align-self-end">
+        <div class="col-1 align-self-end" style="left:40%;">
           <button id="search_btn" class="btn btn-sm btn-outline-success">검색</button>
         </div>
       </div>
@@ -86,88 +99,153 @@
   </div>
 </div> <!--전체-->
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/slim-select/1.26.0/slimselect.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/slim-select/1.26.0/slimselect.min.css" rel="stylesheet"></link>
+<!-- <script src="./slimselect.min.js"></script>
+<link rel="stylesheet" href="./slimselect.min.css"></link> -->
+
+<style>
+.input-box{
+  max-height: 35px !important;
+  padding-top: 1px !important;
+  padding-bottom: 1px !important;
+}
+
+</style>
+
 <script type="text/javascript">
 let package_name = 'gallery-dl';
 let current_data = null;
 let static_index = 0;
+
+// multiselect
+let select_a = new SlimSelect({
+  select: '#a',
+  data: []
+})
+let select_g = new SlimSelect({
+  select: '#g',
+  data: []
+})
+let select_t = new SlimSelect({
+  select: '#t',
+  data: []
+})
+let select_type = new SlimSelect({
+  select: '#type',
+  data: []
+})
+let select_c = new SlimSelect({
+  select: '#c',
+  data: []
+})
+let select_l = new SlimSelect({
+  select: '#l',
+  data: []
+})
 
 $(document).ready(function(){
   static_index = 0;
   const protocol = window.location.protocol;
   const socket = io.connect(protocol + "//" + document.domain + ":" + location.port + "/" + package_name);
 
-  socket.on('hitomi_queue_list', (data) => {
-    make_queue_list(data);
-  })
+  socket.on('hitomi_queue_one', function (data){
+    id = data['id'] == undefined ? 100 : data['id'] 
+    str = ''
+    str += '<div id="queue_' + id + '_div">'
+    str += '</div>' //one
+    document.getElementById("search_result_list").innerHTML += str;
 
-  socket.on('hitomi_queue_one', (data) => {
-    console.log(data);
-    // str = make_queue_one(data)
-    // let element = document.getElementById('queue_'+static_index+'_div')
-    // if(element.previousSibling != null){
-    //   str = m_hr(0) + str
-    // }
-    // element.innerHTML = str;
+    str = make_queue_one(data)
+    let element = document.getElementById('queue_'+id+'_div')
+    if(element.previousSibling != null){
+      str = m_hr(0) + str
+    }
+    element.innerHTML = str;
   })
 })
 
-function make_queue_list(data){
-  str = '';
-  for(i in data){
-    str += '<div id="queue_' + static_index + '_div">'
-    str += make_queue_one(data[i])
-    str += '</div>' //one
-    if (i != data.length - 1) str += m_hr(0);
-  }
-  document.getElementById("search_result_list").innerHTML = str;
-}
+function make_queue_one(data){ // TODO: 
+  console.log(data['title'], data['url'], data['tags'], data['type'], data['artist'])
 
-function make_queue_one(data){ // TODO:
-  
+  title = data['title'] == undefined ? '' : data['title'].toString()
+  url = data['url'] == undefined ? '' : data['url'].toString()
+  tags = data['tags'] == undefined ? '' : data['tags'].toString()
+  _type = data['type'] == undefined ? '' : data['type'].toString()
+  parody = data['parody'] == undefined ? '' : data['parody'].toString()
+  character = data['character'] == undefined ? '' : data['character'].toString()
+  artist = data['artist'] == undefined ? '' : data['artist'].toString()
+  group = data['group'] == undefined ? '' : data['group'].toString()
+  language = data['language'] == undefined ? '' : data['language'].toString()
+  thumbnail = '#' // TODO: 
+
+  img = `<img src=${thumbnail} class="img-fluid">`
+
   tmp_r1 = m_row_start(padding=4)
   tmp_r2 = m_row_start(padding=2)
 
-  img = '<img src='+data['thumbnail']+' class="img-fluid">'
-  title = data['title']
-  url = data['url']
-  tags = data['tags']
-  _type = data['type']
-  parody = data['parody']
-  character = data['character']
-  artist = data['artist']
-  group = data['group']
-  language = data['language']
+  str = ''
+  str += tmp_r1
+  str += m_col(3, img)
+  str += m_col(6, title)
+  str += m_col(1, 'down button')
+  str += tmp_r2
+  str += m_col(2, artist)
+  str += m_col(1, group)
+  str += m_col(1, parody)
+  str += m_col(1, character)
+  str += m_col(3, tags)
+  str += m_col(1, type)
+  str += m_col(1, language)
 
-
-  str = m_row_start();
-  if (data.manga_id != null) {
-    tmp = '전체'
-    tmp2 = data.manga_id
-  } else {
-    tmp = '에피소드'
-    tmp2 = data.wr_id
-  }
-  str += m_col(1, tmp)
-  str += m_col(6, (data.title == null) ? '--' : data.title)
-  str += m_col(2, tmp2)
-  str += m_col(1, data.episodes.length)
-  str += m_col(1, data.status)
-  tmp = m_button('toggle_btn', 'Toggle', [{ 'key': 'index', 'value': data.index }]);
-  str += m_col(1, tmp)
-  str += m_row_end();
-  str += '<div id="toggle_' + data.index + '_div" class="collapse">'
-  for (j in data.episodes) {
-    str += '<div id="episode_' + data.index + '_' + data.episodes[j].index + '_div">'
-    str += make_episode(data.episodes[j])
-    str += '</div>'
-  }
-  str += '</div>' //epi
-  return str
+  return str + str2
 }
 
+// 성능 이슈
+// $("body").on('click', '#tab_hitomi', function(e){
+//   e.preventDefault();
+
+//   let meta_url = "http://k123s456h.pythonanywhere.com/h_data/meta.json";
+//   $.ajax({
+//     type: "GET",
+//     url: meta_url,
+//     success: function (meta) {
+//       for (key in meta) {
+//         let _data = [];
+//         for (idx in meta[key]) {
+//           _data.push({text: meta[key][idx]})
+//         }
+//         switch (key) {
+//           case 'a':
+//             select_a.setData(_data)
+//             break;
+//           case 'g':
+//             select_g.setData(_data)
+//             break;
+//           case 't':
+//             select_t.setData(_data)
+//             break;
+//           case 'type':
+//             select_type.setData(_data)
+//             break;
+//           case 'c':
+//             select_c.setData(_data)
+//             break;
+//           case 'l':
+//             select_l.setData(_data)
+//             break;
+//         }
+//       }
+//     },
+//     error: function () {
+//       // An error occurred
+//     }
+//   });
+// });
 
 $("body").on('click', '#search_btn', function (e) {
   e.preventDefault();
+  document.getElementById("search_result_list").innerHTML = ''
   
   title = document.getElementById('title').value
   artist = document.getElementById('artist').value
