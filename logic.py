@@ -30,10 +30,24 @@ class Logic(object):
         'auto_start': 'False',
         'interval': '120',
         'downlist_normal': '',
-        'downlist_hitomi': 'language:["korean"]',
-        'blacklist_hitomi': '',
         'hitomi_last_time': "1970-01-01 00:00:01",
-        'hitomi_last_num': "-1"
+        'hitomi_last_num': "-1",
+
+        'p_title': "",
+        "p_artist": "",
+        "p_group": "",
+        "p_tags": "",
+        "p_type": "",
+        "p_character": "",
+        "p_language": "korean",
+
+        'b_title': "",
+        "b_artist": "",
+        "b_group": "",
+        "b_tags": "",
+        "b_type": "",
+        "b_character": "",
+        "b_language": ""
     }
 
 

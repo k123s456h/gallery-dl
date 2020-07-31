@@ -5,11 +5,12 @@
   <form id="form_search" class="form-inline" style="text-align:left">
     <div class="container-fluid">
       <div class="row show-grid">
-        <span class="col-md-2"></span>
-        <span class="col-md-8">
+        <span class="col-md-1"></span>
+        <span class="col-md-10">
           <input id="search_word" name="search_word" class="form-control form-control-sm w-75" type="text" placeholder="" aria-label="Search">
           <button id="search" class="btn btn-sm btn-outline-success">검색</button>
           <button id="reset_btn" class="btn btn-sm btn-outline-success">리셋</button>
+          <button id="reset_db" class="btn btn-sm btn-outline-success">db 초기화</button>
         </span>
         <span class="col-md-2"></span>
       </div>
@@ -75,6 +76,15 @@ function make_list(data) {
 
 $(document).ready(function(){
   request_search('1');
+});
+
+$("body").on('click', '#reset_db', function (e) {
+  $.get({
+    url: '/' + package_name + '/ajax/reset_db',
+    success: function (data) {
+      console.log("success: ", data)
+    }
+  });
 });
 
 $("#search").click(function(e) {

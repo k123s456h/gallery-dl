@@ -24,51 +24,39 @@
         <div class="row">
           <div class="col-sm-5 set-left"><strong>제목</strong></div>
           <input id="title" name='title' type="text" class="list-group-item form-control form-control-sm col-sm-6"
-            style="left: 15px; padding: .25rem .5rem;" value="">
+            style="padding: .25rem .5rem;" value="">
         </div>
         <div class="row">
           <div class="col-sm-5 set-left"><strong>작가</strong></div>
-        <!--
+        
           <input id="artist" type="text" class="list-group-item form-control form-control-sm col-sm-6"
             style="padding: .25rem .5rem;" value="">
-        -->
-          <select class="col-sm-7 input-box" id="a" multiple>
-          </select>
+       
         </div>
         <div class="row">
           <div class="col-sm-5 set-left"><strong>그룹</strong></div>
-          <!-- <input id="group" type="text" class="list-group-item form-control form-control-sm col-sm-6"
-            style="padding: .25rem .5rem;" value=""> -->
-            <select class="col-sm-7 input-box" id="g" multiple>
-            </select>
+          <input id="group" type="text" class="list-group-item form-control form-control-sm col-sm-6"
+            style="padding: .25rem .5rem;" value="">
         </div>
         <div class="row">
           <div class="col-sm-5 set-left"><strong>태그</strong></div>
-          <!-- <input id="tags" type="text" class="list-group-item form-control form-control-sm col-sm-6"
-            style="padding: .25rem .5rem;" value=""> -->
-            <select class="col-sm-7 input-box" id="t" multiple>
-            </select>
+          <input id="tags" type="text" class="list-group-item form-control form-control-sm col-sm-6"
+            style="padding: .25rem .5rem;" value="">
         </div>
         <div class="row">
           <div class="col-sm-5 set-left"><strong>종류</strong></div>
-          <!-- <input id="type" type="text" class="list-group-item form-control form-control-sm col-sm-6"
-            style="padding: .25rem .5rem;" value=""> -->
-            <select class="col-sm-7 input-box" id="type" multiple>
-            </select>
+          <input id="type" type="text" class="list-group-item form-control form-control-sm col-sm-6"
+            style="padding: .25rem .5rem;" value="">
         </div>
         <div class="row">
           <div class="col-sm-5 set-left"><strong>캐릭터</strong></div>
-          <!-- <input id="character" type="text" class="list-group-item form-control form-control-sm col-sm-6"
-            style="padding: .25rem .5rem;" value=""> -->
-            <select class="col-sm-7 input-box" id="c" multiple>
-            </select>
+          <input id="character" type="text" class="list-group-item form-control form-control-sm col-sm-6"
+            style="padding: .25rem .5rem;" value="">
         </div>
         <div class="row">
           <div class="col-sm-5 set-left"><strong>언어</strong></div>
-          <!-- <input id="language" type="text" class="list-group-item form-control form-control-sm col-sm-6"
-            style="padding: .25rem .5rem;" value=""> -->
-            <select class="col-sm-7 input-box" id="l" multiple>
-            </select>
+          <input id="language" type="text" class="list-group-item form-control form-control-sm col-sm-6"
+            style="padding: .25rem .5rem;" value="korean">
         </div>
       </div>
 
@@ -76,7 +64,7 @@
         <div class='col align-self-start' style="left:40%;">
           <div>
             <!-- 여기에 설명 작성 -->
-            <strong>구분자 |</strong>
+            <strong>구분자 ||<br>소문자 작성</strong>
           </div>
         </div>
         <div class="w-100"></div>
@@ -89,8 +77,17 @@
     <div class="collapse" id="search_result">
       {{ macros.m_hr_head_top() }}
       {{ macros.m_row_start('5') }}
-      {{ macros.m_col(3,  macros.m_strong('썸네일')) }}
-      {{ macros.m_col(7,  macros.m_strong('제목')) }}
+      {{ macros.m_col(3,  macros.m_strong('image')) }}
+      {{ macros.m_col(7,  macros.m_strong('title')) }}
+      {{ macros.m_row_end() }}
+      {{ macros.m_row_start('5') }}
+      {{ macros.m_col(2,  macros.m_strong('artist')) }}
+      {{ macros.m_col(3,  macros.m_strong('tags')) }}
+      {{ macros.m_col(1,  macros.m_strong('type')) }}
+      {{ macros.m_col(1,  macros.m_strong('language')) }}
+      {{ macros.m_col(1,  macros.m_strong('group')) }}
+      {{ macros.m_col(1,  macros.m_strong('parody')) }}
+      {{ macros.m_col(1,  macros.m_strong('character')) }}
       {{ macros.m_row_end() }}
       {{ macros.m_hr_head_bottom() }}
       <div id="search_result_list"></div>
@@ -99,57 +96,20 @@
   </div>
 </div> <!--전체-->
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/slim-select/1.26.0/slimselect.min.js"></script>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/slim-select/1.26.0/slimselect.min.css" rel="stylesheet"></link>
-<!-- <script src="./slimselect.min.js"></script>
-<link rel="stylesheet" href="./slimselect.min.css"></link> -->
-
-<style>
-.input-box{
-  max-height: 35px !important;
-  padding-top: 1px !important;
-  padding-bottom: 1px !important;
-}
-
-</style>
 
 <script type="text/javascript">
 let package_name = 'gallery-dl';
 let current_data = null;
 let static_index = 0;
 
-// multiselect
-let select_a = new SlimSelect({
-  select: '#a',
-  data: []
-})
-let select_g = new SlimSelect({
-  select: '#g',
-  data: []
-})
-let select_t = new SlimSelect({
-  select: '#t',
-  data: []
-})
-let select_type = new SlimSelect({
-  select: '#type',
-  data: []
-})
-let select_c = new SlimSelect({
-  select: '#c',
-  data: []
-})
-let select_l = new SlimSelect({
-  select: '#l',
-  data: []
-})
 
 $(document).ready(function(){
   static_index = 0;
   const protocol = window.location.protocol;
   const socket = io.connect(protocol + "//" + document.domain + ":" + location.port + "/" + package_name);
+  const socket_h = io.connect(protocol + "//" + document.domain + ":" + location.port + "/hitomi");
 
-  socket.on('hitomi_queue_one', function (data){
+  socket_h.on('hitomi_queue_one', function (data){
     id = data['id'] == undefined ? 100 : data['id'] 
     str = ''
     str += '<div id="queue_' + id + '_div">'
@@ -166,82 +126,43 @@ $(document).ready(function(){
 })
 
 function make_queue_one(data){ // TODO: 
-  console.log(data['title'], data['url'], data['tags'], data['type'], data['artist'])
+  // console.log(data['id'], data['n'], data['url'], data['t'], data['type'], data['a'])
 
-  title = data['title'] == undefined ? '' : data['title'].toString()
+  id = data['id'] == undefined ? '' : data['id'].toString()
+  title = data['n'] == undefined ? '' : data['n'].toString()
   url = data['url'] == undefined ? '' : data['url'].toString()
-  tags = data['tags'] == undefined ? '' : data['tags'].toString()
+  tags = data['t'] == undefined ? '' : data['t'].toString()
   _type = data['type'] == undefined ? '' : data['type'].toString()
-  parody = data['parody'] == undefined ? '' : data['parody'].toString()
-  character = data['character'] == undefined ? '' : data['character'].toString()
-  artist = data['artist'] == undefined ? '' : data['artist'].toString()
-  group = data['group'] == undefined ? '' : data['group'].toString()
-  language = data['language'] == undefined ? '' : data['language'].toString()
+  parody = data['p'] == undefined ? '' : data['p'].toString()
+  character = data['c'] == undefined ? '' : data['c'].toString()
+  artist = data['a'] == undefined ? '' : data['a'].toString()
+  group = data['g'] == undefined ? '' : data['g'].toString()
+  language = data['l'] == undefined ? '' : data['l'].toString()
   thumbnail = '#' // TODO: 
 
   img = `<img src=${thumbnail} class="img-fluid">`
 
-  tmp_r1 = m_row_start(padding=4)
-  tmp_r2 = m_row_start(padding=2)
+  // tmp_r1 = m_row_start(padding=4)
+  // tmp_r2 = m_row_start(padding=2)
 
-  str = ''
-  str += tmp_r1
+  str = m_row_start()
   str += m_col(3, img)
-  str += m_col(6, title)
+  str += m_col(8, title)
   str += m_col(1, 'down button')
-  str += tmp_r2
+  str += m_row_end();
+
+  str += m_row_start()
   str += m_col(2, artist)
+  str += m_col(3, tags)
+  str += m_col(1, _type)
+  str += m_col(1, language)
   str += m_col(1, group)
   str += m_col(1, parody)
   str += m_col(1, character)
-  str += m_col(3, tags)
-  str += m_col(1, type)
-  str += m_col(1, language)
+  str += m_row_end();
 
-  return str + str2
+  return str;
 }
-
-// 성능 이슈
-// $("body").on('click', '#tab_hitomi', function(e){
-//   e.preventDefault();
-
-//   let meta_url = "http://k123s456h.pythonanywhere.com/h_data/meta.json";
-//   $.ajax({
-//     type: "GET",
-//     url: meta_url,
-//     success: function (meta) {
-//       for (key in meta) {
-//         let _data = [];
-//         for (idx in meta[key]) {
-//           _data.push({text: meta[key][idx]})
-//         }
-//         switch (key) {
-//           case 'a':
-//             select_a.setData(_data)
-//             break;
-//           case 'g':
-//             select_g.setData(_data)
-//             break;
-//           case 't':
-//             select_t.setData(_data)
-//             break;
-//           case 'type':
-//             select_type.setData(_data)
-//             break;
-//           case 'c':
-//             select_c.setData(_data)
-//             break;
-//           case 'l':
-//             select_l.setData(_data)
-//             break;
-//         }
-//       }
-//     },
-//     error: function () {
-//       // An error occurred
-//     }
-//   });
-// });
 
 $("body").on('click', '#search_btn', function (e) {
   e.preventDefault();
@@ -273,7 +194,6 @@ $("body").on('click', '#search_btn', function (e) {
 });
 
 
-
 $("body").on('click', '#download_btn', function(e){
   e.preventDefault();
   url = document.getElementById("url").value
@@ -298,5 +218,9 @@ $("body").on('click', '#download_btn', function(e){
     }
   });
 });
+
+
+
+
 </script>
 {% endblock %}

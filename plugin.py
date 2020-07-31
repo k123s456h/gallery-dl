@@ -90,6 +90,7 @@ def first_menu(sub):
         return render_template('{package_name}_{sub}.html'.format(package_name=package_name, sub=sub), arg=arg)
     elif sub == 'scheduler':
         arg = ModelSetting.to_dict()
+        arg['package_name']  = package_name
         return render_template('{package_name}_{sub}.html'.format(package_name=package_name, sub=sub), arg=arg)
     elif sub == 'request':
         arg = ModelSetting.to_dict()
@@ -136,15 +137,6 @@ def ajax(sub):
                 ret = Logic.download_by_request(request)    # start download from here
                 return jsonify(ret)
             except Exception as e: 
-                logger.error('Exception:%s', e)
-                logger.error(traceback.format_exc())
-        elif sub == 'h_data':
-            try:
-                with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'hitomi-data/meta.json'), 'r') as metadata:
-                    return jsonify(json.load(metadata))
-                    metadata.close()
-                return jsonify({})
-            except Exception as e:
                 logger.error('Exception:%s', e)
                 logger.error(traceback.format_exc())
         elif sub == 'search':
@@ -281,5 +273,7 @@ def send_queue_list():
     #socketio_callback('queue_list', t, encoding=False)
     socketio_callback('queue_list', tmp, encoding=False)
 
+
+@socketio.on('hitomi_search', namespace='/hitomi')
 def send_search_result(data):
-    socketio_callback('hitomi_queue_one', data, encoding=False)
+    socketio.emit('hitomi_queue_one', data, namespace='/hitomi')
