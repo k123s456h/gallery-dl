@@ -3,224 +3,276 @@
 
 <div>
 
-  <nav>
-    {{ macros.m_tab_head_start() }}
-    {{ macros.m_tab_head2('normal', '일반', true) }}
-    {{ macros.m_tab_head2('hitomi', '히토미', false) }}
-    {{ macros.m_tab_head_end() }}
+    <nav>
+        {{ macros.m_tab_head_start() }}
+        {{ macros.m_tab_head2('normal', '일반', true) }}
+        {{ macros.m_tab_head2('hitomi', '히토미', false) }}
+        {{ macros.m_tab_head_end() }}
 
 
-  </nav>
+    </nav>
 
-  <div class='tab-content', id='nav-tabContent'>
-    {{ macros.m_tab_content_start('normal', true) }}
-    {{ macros.setting_input_text_and_buttons('url', 'url', [['download_btn', '다운로드']], 
+    <div class='tab-content' , id='nav-tabContent'>
+        {{ macros.m_tab_content_start('normal', true) }}
+        {{ macros.setting_input_text_and_buttons('url', 'url', [['download_btn', '다운로드']], 
         value='https://www.mangahere.cc/manga/kaguya_sama_wa_kokurasetai_tensai_tachi_no_renai_zunousen/c195', desc='다운로드', col='6') }}
-    {{ macros.m_tab_content_end() }}
+        {{ macros.m_tab_content_end() }}
 
-    {{ macros.m_tab_content_start('hitomi', false) }}
-    <div class="row">
-      <div class="col-7 row list-group">
+        {{ macros.m_tab_content_start('hitomi', false) }}
         <div class="row">
-          <div class="col-sm-5 set-left"><strong>제목</strong></div>
-          <input id="title" name='title' type="text" class="list-group-item form-control form-control-sm col-sm-6"
-            style="padding: .25rem .5rem;" value="">
-        </div>
-        <div class="row">
-          <div class="col-sm-5 set-left"><strong>작가</strong></div>
-        
-          <input id="artist" type="text" class="list-group-item form-control form-control-sm col-sm-6"
-            style="padding: .25rem .5rem;" value="">
-       
-        </div>
-        <div class="row">
-          <div class="col-sm-5 set-left"><strong>그룹</strong></div>
-          <input id="group" type="text" class="list-group-item form-control form-control-sm col-sm-6"
-            style="padding: .25rem .5rem;" value="">
-        </div>
-        <div class="row">
-          <div class="col-sm-5 set-left"><strong>태그</strong></div>
-          <input id="tags" type="text" class="list-group-item form-control form-control-sm col-sm-6"
-            style="padding: .25rem .5rem;" value="">
-        </div>
-        <div class="row">
-          <div class="col-sm-5 set-left"><strong>종류</strong></div>
-          <input id="type" type="text" class="list-group-item form-control form-control-sm col-sm-6"
-            style="padding: .25rem .5rem;" value="">
-        </div>
-        <div class="row">
-          <div class="col-sm-5 set-left"><strong>캐릭터</strong></div>
-          <input id="character" type="text" class="list-group-item form-control form-control-sm col-sm-6"
-            style="padding: .25rem .5rem;" value="">
-        </div>
-        <div class="row">
-          <div class="col-sm-5 set-left"><strong>언어</strong></div>
-          <input id="language" type="text" class="list-group-item form-control form-control-sm col-sm-6"
-            style="padding: .25rem .5rem;" value="korean">
-        </div>
-      </div>
+            <div class="col-7 row list-group">
+                <div class="row">
+                    <div class="col-sm-5 set-left"><strong>제목</strong></div>
+                    <input id="title" name='title' type="text" class="list-group-item form-control form-control-sm col-sm-6" style="padding: .25rem .5rem;" value="">
+                </div>
+                <div class="row">
+                    <div class="col-sm-5 set-left"><strong>작가</strong></div>
 
-      <div class="row">
-        <div class='col align-self-start' style="left:40%;">
-          <div>
-            <!-- 여기에 설명 작성 -->
-            <strong>구분자 ||<br>소문자 작성</strong>
-          </div>
+                    <input id="artist" type="text" class="list-group-item form-control form-control-sm col-sm-6" style="padding: .25rem .5rem;" value="">
+
+                </div>
+                <div class="row">
+                    <div class="col-sm-5 set-left"><strong>그룹</strong></div>
+                    <input id="group" type="text" class="list-group-item form-control form-control-sm col-sm-6" style="padding: .25rem .5rem;" value="">
+                </div>
+                <div class="row">
+                    <div class="col-sm-5 set-left"><strong>태그</strong></div>
+                    <input id="tags" type="text" class="list-group-item form-control form-control-sm col-sm-6" style="padding: .25rem .5rem;" value="">
+                </div>
+                <div class="row">
+                    <div class="col-sm-5 set-left"><strong>종류</strong></div>
+                    <input id="type" type="text" class="list-group-item form-control form-control-sm col-sm-6" style="padding: .25rem .5rem;" value="">
+                </div>
+                <div class="row">
+                    <div class="col-sm-5 set-left"><strong>캐릭터</strong></div>
+                    <input id="character" type="text" class="list-group-item form-control form-control-sm col-sm-6" style="padding: .25rem .5rem;" value="">
+                </div>
+                <div class="row">
+                    <div class="col-sm-5 set-left"><strong>언어</strong></div>
+                    <input id="language" type="text" class="list-group-item form-control form-control-sm col-sm-6" style="padding: .25rem .5rem;" value="korean">
+                </div>
+            </div>
+
+            <div class="row">
+                <div class='col align-self-start' style="left:40%;">
+                    <div>
+                        <!-- 여기에 설명 작성 -->
+                        <strong>구분자 ||<br>소문자 작성</strong>
+                    </div>
+                </div>
+                <div class="w-100"></div>
+                <div class="col-4 align-self-end" style="left:40%;">
+                    <button id="search_btn" class="btn btn-sm btn-outline-success">검색</button>
+                </div>
+                <div class="col-2 align-self-end" style="left:40%;">
+                    <button id="before_btn" class="btn btn-sm btn-outline-success">이전</button>
+                </div>
+                <div class="col-2 align-self-end" style="left:40%;">
+                    <button id="next_btn" class="btn btn-sm btn-outline-success">다음</button>
+                </div>
+            </div>
         </div>
-        <div class="w-100"></div>
-        <div class="col-1 align-self-end" style="left:40%;">
-          <button id="search_btn" class="btn btn-sm btn-outline-success">검색</button>
+
+        <div class="collapse" id="search_result">
+            {{ macros.m_hr_head_top() }}
+            {{ macros.m_row_start('5') }}
+            {{ macros.m_col(3,  macros.m_strong('image')) }}
+            {{ macros.m_col(7,  macros.m_strong('title')) }}
+            {{ macros.m_row_end() }}
+            {{ macros.m_row_start('5') }}
+            {{ macros.m_col(2,  macros.m_strong('artist')) }}
+            {{ macros.m_col(3,  macros.m_strong('tags')) }}
+            {{ macros.m_col(1,  macros.m_strong('type')) }}
+            {{ macros.m_col(1,  macros.m_strong('language')) }}
+            {{ macros.m_col(1,  macros.m_strong('group')) }}
+            {{ macros.m_col(1,  macros.m_strong('parody')) }}
+            {{ macros.m_col(1,  macros.m_strong('character')) }}
+            {{ macros.m_row_end() }}
+            {{ macros.m_hr_head_bottom() }}
+            <div id="search_result_list"></div>
+
+            <div class='row'>
+                <div class="col-2 align-self-end" style="left:40%;">
+                    <button id="before_btn" class="btn btn-sm btn-outline-success">이전</button>
+                </div>
+                <div class="col-1 align-self-end" style="left:40%;">
+                    <button id="next_btn" class="btn btn-sm btn-outline-success">다음</button>
+                </div>
+            </div>
         </div>
-      </div>
+        {{ macros.m_tab_content_end() }}
     </div>
-
-    <div class="collapse" id="search_result">
-      {{ macros.m_hr_head_top() }}
-      {{ macros.m_row_start('5') }}
-      {{ macros.m_col(3,  macros.m_strong('image')) }}
-      {{ macros.m_col(7,  macros.m_strong('title')) }}
-      {{ macros.m_row_end() }}
-      {{ macros.m_row_start('5') }}
-      {{ macros.m_col(2,  macros.m_strong('artist')) }}
-      {{ macros.m_col(3,  macros.m_strong('tags')) }}
-      {{ macros.m_col(1,  macros.m_strong('type')) }}
-      {{ macros.m_col(1,  macros.m_strong('language')) }}
-      {{ macros.m_col(1,  macros.m_strong('group')) }}
-      {{ macros.m_col(1,  macros.m_strong('parody')) }}
-      {{ macros.m_col(1,  macros.m_strong('character')) }}
-      {{ macros.m_row_end() }}
-      {{ macros.m_hr_head_bottom() }}
-      <div id="search_result_list"></div>
-    </div>
-    {{ macros.m_tab_content_end() }}
-  </div>
-</div> <!--전체-->
+</div>
+<!--전체-->
 
 
 <script type="text/javascript">
-let package_name = 'gallery-dl';
-let current_data = null;
-let static_index = 0;
+    const delta = 15
+    let package_name = 'gallery-dl';
+    let static_index = delta;
+    let result_length = 0;
+    let search_result = null;
 
 
-$(document).ready(function(){
-  static_index = 0;
-  const protocol = window.location.protocol;
-  const socket = io.connect(protocol + "//" + document.domain + ":" + location.port + "/" + package_name);
-  const socket_h = io.connect(protocol + "//" + document.domain + ":" + location.port + "/hitomi");
+    $(document).ready(function() {
+        static_index = delta;
+        const protocol = window.location.protocol;
+        const socket = io.connect(protocol + "//" + document.domain + ":" + location.port + "/" + package_name);
 
-  socket_h.on('hitomi_queue_one', function (data){
-    id = data['id'] == undefined ? 100 : data['id'] 
-    str = ''
-    str += '<div id="queue_' + id + '_div">'
-    str += '</div>' //one
-    document.getElementById("search_result_list").innerHTML += str;
+        socket.on('hitomi_search_result', function(data) {
+            console.log(data);
+            search_result = data;
+            result_length = data.length;
+            make_search_result(data);
+        })
+    })
 
-    str = make_queue_one(data)
-    let element = document.getElementById('queue_'+id+'_div')
-    if(element.previousSibling != null){
-      str = m_hr(0) + str
-    }
-    element.innerHTML = str;
-  })
-})
+    function make_search_result(data) {
+        document.getElementById("search_result_list").innerHTML = "";
+        for (let i = static_index - delta; i < static_index && i < result_length && i >= 0; i++) {
+            id = data[i]['id'] == undefined ? 0 : data[i]['id']
+            str = ''
+            str += '<div id="queue_' + id + '_div">'
+            str += '</div>' //one
+            document.getElementById("search_result_list").innerHTML += str;
 
-function make_queue_one(data){ // TODO: 
-  // console.log(data['id'], data['n'], data['url'], data['t'], data['type'], data['a'])
+            str = make_queue_one(data[i])
+            let element = document.getElementById('queue_' + id + '_div')
+            if (element.previousSibling != null) {
+                str = m_hr(0) + str
+            }
+            element.innerHTML = str;
+        }
 
-  id = data['id'] == undefined ? '' : data['id'].toString()
-  title = data['n'] == undefined ? '' : data['n'].toString()
-  url = data['url'] == undefined ? '' : data['url'].toString()
-  tags = data['t'] == undefined ? '' : data['t'].toString()
-  _type = data['type'] == undefined ? '' : data['type'].toString()
-  parody = data['p'] == undefined ? '' : data['p'].toString()
-  character = data['c'] == undefined ? '' : data['c'].toString()
-  artist = data['a'] == undefined ? '' : data['a'].toString()
-  group = data['g'] == undefined ? '' : data['g'].toString()
-  language = data['l'] == undefined ? '' : data['l'].toString()
-  thumbnail = '#' // TODO: 
-
-  img = `<img src=${thumbnail} class="img-fluid">`
-
-  // tmp_r1 = m_row_start(padding=4)
-  // tmp_r2 = m_row_start(padding=2)
-
-  str = m_row_start()
-  str += m_col(3, img)
-  str += m_col(8, title)
-  str += m_col(1, 'down button')
-  str += m_row_end();
-
-  str += m_row_start()
-  str += m_col(2, artist)
-  str += m_col(3, tags)
-  str += m_col(1, _type)
-  str += m_col(1, language)
-  str += m_col(1, group)
-  str += m_col(1, parody)
-  str += m_col(1, character)
-  str += m_row_end();
-
-  return str;
-}
-
-$("body").on('click', '#search_btn', function (e) {
-  e.preventDefault();
-  document.getElementById("search_result_list").innerHTML = ''
-  
-  title = document.getElementById('title').value
-  artist = document.getElementById('artist').value
-  group = document.getElementById('group').value
-  tags = document.getElementById('tags').value
-  _type = document.getElementById('type').value
-  character = document.getElementById('character').value
-  language = document.getElementById('language').value
-
-  $.ajax({
-    url: '/' + package_name + '/ajax/search',
-    type: 'POST',
-    cache: false,
-    data: {
-      n:title, a:artist, g:group, t:tags,
-      type: _type, c:character, l:language
-    },
-    dataType: 'json'
-  });
-  $.notify(`<strong>검색 중 입니다...</strong>`, {
-    type: 'success'
-  });
-
-  $('#search_result').collapse('show')
-});
-
-
-$("body").on('click', '#download_btn', function(e){
-  e.preventDefault();
-  url = document.getElementById("url").value
- 
-  $.ajax({
-    url: '/' + package_name + '/ajax/download_by_request',
-    type: "POST",
-    cache: false,
-    data: {url:url},
-    dataType: "json",
-    success: function (ret) {
-      if (ret) {
-        window.location.href = '/'+package_name+'/queue'
-        $.notify(`<strong>${url.slice(7,22)}...${url.slice(-10)}을(를)<br>큐에 추가하였습니다.</strong>`, {
-          type: 'success'
+        $('#manual_download_btn').click(function() {
+            url = $(this)[0].value;
+            console.log(`added to queue: ${url}`);
+            add_queue(url);
         });
-      } else {
-        $.notify(`<strong>${url.slice(7, 22)}...${url.slice(-10)}<br>큐 추가 실패</strong>`, {
-          type: 'warning'
-        });
-      }
     }
-  });
-});
+
+    function make_queue_one(data) { // TODO: 
+        // console.log(data['id'], data['n'], data['url'], data['t'], data['type'], data['a'])
+
+        id = data['id'] == undefined ? '' : data['id'].toString()
+        title = data['n'] == undefined ? '' : data['n'].toString()
+        url = data['url'] == undefined ? '' : data['url'].toString()
+        tags = data['t'] == undefined ? '' : data['t'].toString()
+        _type = data['type'] == undefined ? '' : data['type'].toString()
+        parody = data['p'] == undefined ? '' : data['p'].toString()
+        character = data['c'] == undefined ? '' : data['c'].toString()
+        artist = data['a'] == undefined ? '' : data['a'].toString()
+        group = data['g'] == undefined ? '' : data['g'].toString()
+        language = data['l'] == undefined ? '' : data['l'].toString()
+        thumbnail = '#' // TODO: 
+
+        img = `<img src=${thumbnail} class="img-fluid">`
+
+        // tmp_r1 = m_row_start(padding=4)
+        // tmp_r2 = m_row_start(padding=2)
+
+        str = m_row_start()
+        str += m_col(3, img)
+        str += m_col(7, title)
+        str += m_col(1, `
+        <div class="col-1 align-self-end" style="left:40%;">
+            <button id="manual_download_btn" value="${url}" class="btn btn-sm btn-outline-success">다운로드</button>
+        </div>
+        `)
+        str += m_row_end();
+
+        str += m_row_start()
+        str += m_col(2, artist)
+        str += m_col(3, tags)
+        str += m_col(1, _type)
+        str += m_col(1, language)
+        str += m_col(1, group)
+        str += m_col(1, parody)
+        str += m_col(1, character)
+        str += m_row_end();
+
+        return str;
+    }
 
 
+    function add_queue(url) {
+        $.ajax({
+            url: '/' + package_name + '/ajax/download_by_request',
+            type: "POST",
+            cache: false,
+            data: {
+                url: url
+            },
+            dataType: "json",
+            success: function(ret) {
+                if (ret) {
+                    $.notify(`<strong>${url.slice(7,22)}...${url.slice(-10)}을(를)<br>큐에 추가하였습니다.</strong>`, {
+                        type: 'success'
+                    });
+                } else {
+                    $.notify(`<strong>${url.slice(7, 22)}...${url.slice(-10)}<br>큐 추가 실패</strong>`, {
+                        type: 'warning'
+                    });
+                }
+            }
+        });
+    }
 
 
+    $("body").on('click', '#search_btn', function(e) {
+        e.preventDefault();
+        document.getElementById("search_result_list").innerHTML = ''
+
+        title = document.getElementById('title').value
+        artist = document.getElementById('artist').value
+        group = document.getElementById('group').value
+        tags = document.getElementById('tags').value
+        _type = document.getElementById('type').value
+        character = document.getElementById('character').value
+        language = document.getElementById('language').value
+
+        $.ajax({
+            url: '/' + package_name + '/ajax/search',
+            type: 'POST',
+            cache: false,
+            data: {
+                n: title,
+                a: artist,
+                g: group,
+                t: tags,
+                type: _type,
+                c: character,
+                l: language
+            },
+            dataType: 'json'
+        });
+        $.notify(`<strong>검색 중 입니다...</strong>`, {
+            type: 'success'
+        });
+
+        $('#search_result').collapse('show')
+    });
+
+
+    $("body").on('click', '#download_btn', function(e) {
+        e.preventDefault();
+        url = document.getElementById("url").value
+
+        add_queue(url);
+        // window.location.href = '/' + package_name + '/queue'
+    });
+
+
+    $("body").on('click', '#before_btn', function(e) {
+        e.preventDefault();
+        static_index - delta <= 0 ? static_index : static_index -= delta;
+        make_search_result(search_result);
+    });
+
+    $("body").on('click', '#next_btn', function(e) {
+        e.preventDefault();
+        static_index > result_length ? static_index : static_index += delta;
+        make_search_result(search_result);
+    });
 </script>
 {% endblock %}

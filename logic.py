@@ -372,4 +372,3 @@ class Logic(object):
     #         logger.error(traceback.format_exc())
     #         return False
 
-

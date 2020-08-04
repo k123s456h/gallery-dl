@@ -142,7 +142,7 @@ def ajax(sub):
         elif sub == 'search':
             try:
                 from .logic_hitomi import LogicHitomi
-                LogicHitomi.realtime_search(request)
+                LogicHitomi.search(request)
                 return jsonify({})
             except Exception as e:
                 logger.error('Exception:%s', e)
@@ -273,7 +273,6 @@ def send_queue_list():
     #socketio_callback('queue_list', t, encoding=False)
     socketio_callback('queue_list', tmp, encoding=False)
 
-
-@socketio.on('hitomi_search', namespace='/hitomi')
 def send_search_result(data):
-    socketio.emit('hitomi_queue_one', data, namespace='/hitomi')
+    logger.debug('!!!!!!!!!!!data received!!!!!!!!!!!!!!')
+    socketio_callback('hitomi_search_result', data, encoding=False)

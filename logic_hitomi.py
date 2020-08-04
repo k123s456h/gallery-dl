@@ -52,7 +52,7 @@ class LogicHitomi:
   basepath = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'hitomi-data')
   if not os.path.isdir(basepath):
     os.mkdir(basepath)
-
+  
 
   @staticmethod
   def get_response(url):
@@ -120,19 +120,27 @@ class LogicHitomi:
       if key not in gallery:
         flag = False
         break
+      
+      if gallery[key] is None:
+        flag = False
+        break
 
-      if key in ['a', 't', 'p', 'g', 'c']:
-        g_set = set(json.loads(gallery[key]))
-        c_set = set(value)
+      try:
+        if key in ['a', 't', 'p', 'g', 'c']:
+          g_set = set(gallery[key])
+          c_set = set(value)
 
-        if len(g_set.intersection(c_set)) == 0:
-          flag = False
-          break
-
-      else:
-        if gallery[key].lower() not in value():
-          flag = False
-          break
+          if len(g_set.intersection(c_set)) == 0:
+            flag = False
+            break
+        else:
+          if gallery[key].lower() not in value:
+            flag = False
+            break
+      except Exception as e:
+        logger.debug("Exception at: %s %s", type(gallery[key]) ,str(gallery[key]))
+        logger.error('Exception:%s', e)
+        logger.error(traceback.format_exc())
     
     if flag == False:
       return flag
@@ -144,7 +152,7 @@ class LogicHitomi:
         continue
 
       if key in ['a', 't', 'p', 'g', 'c']:
-        g_set = set(json.loads(gallery[key]))
+        g_set = set(gallery[key])
         c_set = set(value)
 
         if len(g_set.intersection(c_set)) != 0:
@@ -191,7 +199,6 @@ class LogicHitomi:
               logger.error(traceback.format_exc())
               # no such key for this item
           galleries.close()
-      
       return ret
     except Exception as e:
       logger.error('Exception:%s', e)
@@ -260,30 +267,9 @@ class LogicHitomi:
       logger.error('Exception:%s', e)
       logger.error(traceback.format_exc())
 
-  @staticmethod
-  def search(condition):
-    ret = []
-    galleries = LogicHitomi.find_gallery(condition, [])
-
-    for gallery in galleries:
-      tmp = {}
-      tmp['thumbnail'] = ''
-      tmp['title'] = gallery['n']
-      tmp['url'] = LogicHitomi.baseurl + str(gallery['id']) + '.html'
-      tmp['tags'] = gallery['t']
-      tmp['type'] = gallery['type']
-      tmp['parody'] = gallery['p']
-      tmp['character'] = gallery['c']
-      tmp['artist'] = gallery['a']
-      tmp['group'] = gallery['g']
-      tmp['language'] = gallery['l']
-      ret.append(tmp)
-
-    return ret
-
 
   @staticmethod
-  def realtime_search(req):
+  def search(req):
     try:
       condition = {}
       condition['n'] = req.form['n'].split('||')
@@ -310,7 +296,9 @@ class LogicHitomi:
       if len(condition) == 0:
         return False
 
-      logger.debug("condition: %s", str(condition))
+      logger.debug("search condition: %s", str(condition))
+
+      ret = []
 
       last_num = int(ModelSetting.get('hitomi_last_num'))
       
@@ -322,21 +310,13 @@ class LogicHitomi:
           for idx, gallery in enumerate(json_item):
             try:
               if LogicHitomi.is_satisfied(gallery, condition, condition_negative):
-                tmp = {}
-                keywords = ['n', 't', 'id', 'type', 'p', 'c', 'a', 'g', 'l']
+                tmp = gallery
                 tmp['thumbnail'] = ''
-                for keyword in keywords:
-                  if keyword in gallery:
-                    if keyword == 'id':
-                      tmp['id'] = gallery['id']
-                      tmp['url'] = LogicHitomi.baseurl + str(gallery['id']) + '.html'
-                    else:
-                      tmp[keyword] = gallery[keyword]
+                tmp['url'] = LogicHitomi.baseurl + str(gallery['id']) + '.html'
 
-                from .plugin import send_search_result
-                send_search_result(tmp)
+                ret.append(tmp)
+
                 logger.debug('found item: %s', tmp['n'])
-              
             except Exception as e:
               import traceback
               logger.error('Exception:%s', e)
@@ -344,6 +324,9 @@ class LogicHitomi:
               # no such key for this item
           
           galleries.close()
+      
+      from .plugin import send_search_result
+      send_search_result(ret)
     except Exception as e:
       logger.error('Exception:%s', e)
       logger.error(traceback.format_exc())
