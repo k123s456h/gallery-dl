@@ -57,7 +57,7 @@
                 <div class='col align-self-start' style="left:40%;">
                     <div>
                         <!-- 여기에 설명 작성 -->
-                        <strong>구분자 ||<br>소문자 작성</strong>
+                        <strong>구분자 ||<br>소문자 작성<br>AND로 검색합니다.</strong>
                     </div>
                 </div>
                 <div class="w-100"></div>
@@ -144,12 +144,40 @@
             element.innerHTML = str;
         }
 
-        $('#manual_download_btn').click(function() {
+        $('.manual_download_btn').click(function() {
             url = $(this)[0].value;
             console.log(`added to queue: ${url}`);
             add_queue(url);
         });
+
+        $('.copy_option').click(function() {
+            copyText = $(this)[0];
+            copyText.select();
+            document.execCommand("Copy");
+            $.notify(`<strong>${copyText.value} 클립보드로 복사</strong>`, {
+                type: 'success'
+            });
+        });
+        Z
     }
+
+    function make_list(array, placeholder) {
+        let str = `<div class="input-group" style="padding-left:0px; padding-top:0px">
+            <select class="form-control form-control-sm">
+                <option value="${placeholder}" selected="">${placeholder}</option>
+        `;
+
+        let length = array.length;
+        if (length) {
+            for (let i = 0; i < length; i++) {
+                str += `<option value="${array[i]}" class="copy_option">${array[i]}</option>`
+            }
+        }
+
+        str += `</select></div>`;
+        return str;
+    }
+
 
     function make_queue_one(data) { // TODO: 
         // console.log(data['id'], data['n'], data['url'], data['t'], data['type'], data['a'])
@@ -157,14 +185,15 @@
         id = data['id'] == undefined ? '' : data['id'].toString()
         title = data['n'] == undefined ? '' : data['n'].toString()
         url = data['url'] == undefined ? '' : data['url'].toString()
-        tags = data['t'] == undefined ? '' : data['t'].toString()
+        tags = data['t'] == undefined ? '' : data['t']
         _type = data['type'] == undefined ? '' : data['type'].toString()
-        parody = data['p'] == undefined ? '' : data['p'].toString()
-        character = data['c'] == undefined ? '' : data['c'].toString()
-        artist = data['a'] == undefined ? '' : data['a'].toString()
-        group = data['g'] == undefined ? '' : data['g'].toString()
+        parody = data['p'] == undefined ? '' : data['p']
+        character = data['c'] == undefined ? '' : data['c']
+        artist = data['a'] == undefined ? '' : data['a']
+        group = data['g'] == undefined ? '' : data['g']
         language = data['l'] == undefined ? '' : data['l'].toString()
         thumbnail = '#' // TODO: 
+
 
         img = `<img src=${thumbnail} class="img-fluid">`
 
@@ -174,21 +203,20 @@
         str = m_row_start()
         str += m_col(3, img)
         str += m_col(7, title)
-        str += m_col(1, `
-        <div class="col-1 align-self-end" style="left:40%;">
-            <button id="manual_download_btn" value="${url}" class="btn btn-sm btn-outline-success">다운로드</button>
+        str += m_col(1, `<div class="col-1 align-self-end" style="left:40%;">
+        <button value="${url}" class="manual_download_btn btn btn-sm btn-outline-success"> 다운로드 </button>
         </div>
         `)
         str += m_row_end();
 
         str += m_row_start()
-        str += m_col(2, artist)
-        str += m_col(3, tags)
-        str += m_col(1, _type)
-        str += m_col(1, language)
-        str += m_col(1, group)
-        str += m_col(1, parody)
-        str += m_col(1, character)
+        str += m_col(2, make_list(artist, 'artist'));
+        str += m_col(3, make_list(tags, 'tags'));
+        str += m_col(1, _type);
+        str += m_col(1, language);
+        str += m_col(1, make_list(group, 'group'));
+        str += m_col(1, make_list(parody, 'parody'));
+        str += m_col(1, make_list(character, 'character'));
         str += m_row_end();
 
         return str;
@@ -205,12 +233,14 @@
             },
             dataType: "json",
             success: function(ret) {
+                msg = url.startsWith('https://') ? url.slice(8, 22) : url.slice(7, 22);
+
                 if (ret) {
-                    $.notify(`<strong>${url.slice(7,22)}...${url.slice(-10)}을(를)<br>큐에 추가하였습니다.</strong>`, {
+                    $.notify(`<strong> ${msg}...${url.slice(-10)}을(를)<br>큐에 추가하였습니다.</strong>`, {
                         type: 'success'
                     });
                 } else {
-                    $.notify(`<strong>${url.slice(7, 22)}...${url.slice(-10)}<br>큐 추가 실패</strong>`, {
+                    $.notify(`<strong>${msg}...${url.slice(-10)}<br>큐 추가 실패</strong>`, {
                         type: 'warning'
                     });
                 }
@@ -275,4 +305,5 @@
         make_search_result(search_result);
     });
 </script>
+{% endblock %}
 {% endblock %}

@@ -274,5 +274,4 @@ def send_queue_list():
     socketio_callback('queue_list', tmp, encoding=False)
 
 def send_search_result(data):
-    logger.debug('!!!!!!!!!!!data received!!!!!!!!!!!!!!')
     socketio_callback('hitomi_search_result', data, encoding=False)

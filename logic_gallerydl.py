@@ -42,9 +42,15 @@ class LogicGalleryDL:
       LogicGalleryDL.update_ui(self, entity)
 
       url = entity['url']
-      info_json = LogicGalleryDL.get_info_json(url)
-      if info_json == "invalid":
-        entity['status']='실패: url'
+      [return_code, info_json] = LogicGalleryDL.get_info_json(url)
+      if return_code != 0:
+        if 'No suitable extractor' in info_json:
+          entity['status'] = '실패: url'
+        elif 'SSLError' in info_json or 'ProxyError' in info_json:
+          entity['status'] = '실패: proxy'
+        else:
+          entity['status'] = '실패'
+
         LogicGalleryDL.update_ui(self, entity)
         return False
       else:
@@ -106,12 +112,18 @@ class LogicGalleryDL:
 
   @staticmethod
   def get_info_json(url):
+    raw_info = ''
     try:
       import subprocess
-      commands = ['gallery-dl', url, '--ignore-config', '--simulate', '--list-keywords']
+      commands = ['gallery-dl', url,
+      '--ignore-config',
+      '--config', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'gallery-dl.conf'),
+      '--simulate', '--list-keywords']
       raw_info = subprocess.check_output(commands, stderr=subprocess.STDOUT).decode('utf-8')
 
       info_json = {}
+
+      raw_info = raw_info[raw_info.find('Keywords for directory names:'):]
       raw_info = raw_info.split('\n')
       n = len(raw_info)
 
@@ -121,17 +133,17 @@ class LogicGalleryDL:
       for idx in range(0, n):
           if raw_info[idx].startswith('['):
               continue
-          if raw_info[idx] == "Keywords for directory names:":
+          elif raw_info[idx] == "Keywords for directory names:":
               info_json["directory"] = {}
               keyword_type = "directory"
               continue
-          if raw_info[idx] == "Keywords for filenames and --filter:":
+          elif raw_info[idx] == "Keywords for filenames and --filter:":
               info_json["filename"] = {}
               keyword_type = "filename"
               continue
-          if raw_info[idx].startswith("-------------"):
+          elif raw_info[idx].startswith("-------------"):
             continue
-          if len(raw_info[idx]) == 0:
+          elif len(raw_info[idx]) == 0:
             continue
 
           if not raw_info[idx].startswith(' '):
@@ -140,7 +152,7 @@ class LogicGalleryDL:
               else:
                 keyword = ""
               keyword_name = raw_info[idx].strip().decode('utf-8')
-              info_json[keyword_type][keyword_name] = keyword.decode('utf-8')
+              info_json[keyword_type][keyword_name] = keyword
           else:
             if keyword == "":
               info_json[keyword_type][keyword_name] = raw_info[idx].strip().decode('utf-8')
@@ -148,16 +160,16 @@ class LogicGalleryDL:
               info_json[keyword_type][keyword_name].append(raw_info[idx][4:].strip().decode('utf-8'))
       
       logger.debug("%s info: %s", url, info_json)
-      return info_json
+      return [0, info_json]
     except Exception as e:
-      logger.error('Exception: returncode: %s', e.returncode)
-      logger.error('Exception: output:     %s', e.output)
-      return "invalid"
+      logger.error('Exception:%s', e)
+      logger.error(traceback.format_exc())
+      logger.error('Exception: gallery-dl output: %s', raw_info)
+      return [-1, raw_info]
 
   @staticmethod
   def entity_update(cmd, entity):
       import plugin
-      # 'queue_one'
       plugin.socketio_callback(cmd, entity, encoding=False)
   
   @staticmethod
@@ -165,9 +177,6 @@ class LogicGalleryDL:
       logger.debug('FOR update : %s' % arg)
       if arg['status'] == 'PROGRESS':
         entity = arg['result']['data']
-
-        logger.debug('safsfasdf: %s', entity)
-
         LogicGalleryDL.entity_update('queue_one', entity)
         from .logic_queue import LogicQueue
         for idx, e in enumerate(LogicQueue.entity_list):

@@ -118,21 +118,23 @@ class LogicHitomi:
       key = key.encode('utf-8')
 
       if key not in gallery:
-        flag = False
-        break
-      
+        return False
       if gallery[key] is None:
-        flag = False
-        break
+        return False
 
       try:
         if key in ['a', 't', 'p', 'g', 'c']:
-          g_set = set(gallery[key])
-          c_set = set(value)
-
-          if len(g_set.intersection(c_set)) == 0:
+          
+          tmp = False
+          for condition_value in value:
+            for gallery_value in gallery[key]:
+              if condition_value in gallery_value:
+                tmp = True
+                break
+          if tmp == False:
             flag = False
             break
+
         else:
           if gallery[key].lower() not in value:
             flag = False
@@ -141,23 +143,23 @@ class LogicHitomi:
         logger.debug("Exception at: %s %s", type(gallery[key]) ,str(gallery[key]))
         logger.error('Exception:%s', e)
         logger.error(traceback.format_exc())
-    
-    if flag == False:
-      return flag
+
 
     for key, value in condition_negative.items(): # OR
       key = key.encode('utf-8')
 
       if key not in gallery:
         continue
+      if gallery[key] is None:
+        continue
 
       if key in ['a', 't', 'p', 'g', 'c']:
-        g_set = set(gallery[key])
-        c_set = set(value)
 
-        if len(g_set.intersection(c_set)) != 0:
-          flag = False
-          break
+        for condition_value in value:
+          for gallery_value in gallery[key]:
+            if condition_value in gallery_value:
+              flag = False
+              break
 
       else:
         if gallery[key].lower() not in value:
