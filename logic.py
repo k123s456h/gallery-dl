@@ -91,7 +91,6 @@ class Logic(object):
             # 자동시작 옵션이 있으면 보통 여기서
             if ModelSetting.get_bool('auto_start'):
                 Logic.scheduler_start('normal')
-
                 if enable == True:
                     Logic.scheduler_start('hitomi') 
         except Exception as e:

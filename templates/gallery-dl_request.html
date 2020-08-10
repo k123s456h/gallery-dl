@@ -210,17 +210,17 @@
     function make_queue_one(data) { // TODO: 
         // console.log(data['id'], data['n'], data['url'], data['t'], data['type'], data['a'])
 
-        id = data['id'] == undefined ? '' : data['id'].toString()
-        title = data['n'] == undefined ? '' : data['n'].toString()
-        url = data['url'] == undefined ? '' : data['url'].toString()
-        tags = data['t'] == undefined ? '' : data['t']
-        _type = data['type'] == undefined ? '' : data['type'].toString()
-        parody = data['p'] == undefined ? '' : data['p']
-        character = data['c'] == undefined ? '' : data['c']
-        artist = data['a'] == undefined ? '' : data['a']
-        group = data['g'] == undefined ? '' : data['g']
-        language = data['l'] == undefined ? '' : data['l'].toString()
-        thumbnail = '#' // TODO: 
+        id = data['id'] == undefined ? '' : data['id'].toString();
+        title = data['n'] == undefined ? '' : data['n'].toString();
+        url = data['url'] == undefined ? '' : data['url'].toString();
+        tags = data['t'] == undefined ? '' : data['t'];
+        _type = data['type'] == undefined ? '' : data['type'].toString();
+        parody = data['p'] == undefined ? '' : data['p'];
+        character = data['c'] == undefined ? '' : data['c'];
+        artist = data['a'] == undefined ? '' : data['a'];
+        group = data['g'] == undefined ? '' : data['g'];
+        language = data['l'] == undefined ? '' : data['l'].toString();
+        thumbnail = document.getElementById('enable_thumbnail').checked ? data['thumbnail'] : '#';
 
 
         img = `<img src=${thumbnail} class="img-fluid">`
