@@ -44,10 +44,10 @@ class LogicGalleryDL:
       url = entity['url']
       [return_code, info_json] = LogicGalleryDL.get_info_json(url)
       if return_code != 0:
-        if 'No suitable extractor' in info_json:
+        if 'exit status 64' in info_json:
           entity['status'] = '실패: url'
-        elif 'SSLError' in info_json or 'ProxyError' in info_json:
-          entity['status'] = '실패: proxy'
+        elif 'exit status 4' in info_json:
+          entity['status'] = '실패: 차단된 사이트'
         else:
           entity['status'] = '실패'
 
@@ -188,10 +188,10 @@ class LogicGalleryDL:
 
   @staticmethod
   def update_ui(celery_is, entity):
-      if app.config['config']['use_celery']:
-          celery_is.update_state(state='PROGRESS', meta={'data':entity})
-      else:
-          LogicGalleryDL.entity_update('queue_one', entity)
+    try:
+        celery_is.update_state(state='PROGRESS', meta={'data':entity})
+    except:
+        LogicGalleryDL.entity_update('queue_one', entity)
 
   @staticmethod
   def download(entity):
@@ -209,7 +209,9 @@ class LogicGalleryDL:
           try:
               result = LogicGalleryDL.make_download.apply_async((entity,))
               result.get(on_message=LogicGalleryDL.update, propagate=True)
-          except:
+          except Exception as e:
+              logger.error('Exception:%s', e)
+              logger.error(traceback.format_exc())
               logger.debug('CELERY on_message not process.. start with no CELERY')
               LogicGalleryDL.make_download(None, entity)
               LogicGalleryDL.entity_update('queue_one', entity)

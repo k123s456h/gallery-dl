@@ -7,6 +7,7 @@ from datetime import datetime
 import sys
 import string
 from subprocess import PIPE, Popen, STDOUT
+import threading
 import json
 import urllib
 
@@ -119,7 +120,6 @@ class LogicHitomi:
     
     return condition
 
-
   @staticmethod
   def is_satisfied(gallery={}, condition={}, condition_negative={}):
     import json
@@ -176,18 +176,15 @@ class LogicHitomi:
 
     return True
 
-
   @staticmethod
-  def find_gallery(condition, condition_negative):
+  def find_gallery(condition, condition_negative, search=False):
     try:
       # condition: { key1:[val1], key2:[val2] }
       # key:
       # type, id, l, n, a [],  t [],  p [], g [], c []
       # galleries0.json is the latest
       logger.debug("search condition: %s", str(condition))
-
       ret = []
-
       last_num = int(ModelSetting.get('hitomi_last_num'))
 
       for num in range(0, last_num + 1):
@@ -201,6 +198,11 @@ class LogicHitomi:
                 gallery['thumbnail'] = ''
                 gallery['url'] = LogicHitomi.baseurl + str(gallery['id']) + '.html'
                 logger.debug('found item: %s', gallery['n'])
+
+                if search == True:
+                  from .plugin import send_search_one
+                  send_search_one(gallery)
+                
                 ret.append(gallery)
             except Exception as e:
               import traceback
@@ -221,7 +223,6 @@ class LogicHitomi:
       urls.append(gallery['url'])
     return urls
 
-  
   @staticmethod
   def list_to_dict(condition_list):
     try:
@@ -252,16 +253,16 @@ class LogicHitomi:
 
 
   @staticmethod
-  def search(req):
+  def search(arg):
     try:
       condition = {}
-      condition['n'] = req.form['n'].split('||')
-      condition['a'] = req.form['a'].split('||')
-      condition['g'] = req.form['g'].split('||')
-      condition['t'] = req.form['t'].split('||')
-      condition['type'] = req.form['type'].split('||')
-      condition['c'] = req.form['c'].split('||')
-      condition['l'] = req.form['l'].split('||')
+      condition['n'] = arg['n'].split('||')
+      condition['a'] = arg['a'].split('||')
+      condition['g'] = arg['g'].split('||')
+      condition['t'] = arg['t'].split('||')
+      condition['type'] = arg['type'].split('||')
+      condition['c'] = arg['c'].split('||')
+      condition['l'] = arg['l'].split('||')
       
       condition_negative={}
       condition_negative['n'] = ModelSetting.get('b_title').split('||')
@@ -272,43 +273,18 @@ class LogicHitomi:
       condition_negative['c'] = ModelSetting.get('b_character').split('||')
       condition_negative['l'] = ModelSetting.get('b_language').split('||')
 
-      # logger.debug("search condition: %s", str(condition))
+      def func(condition_positive, condition_negative):
+        ret = LogicHitomi.find_gallery(condition, condition_negative, search=False)
+        from .plugin import send_search_result
+        send_search_result(ret)
 
-      # ret = []
+      t = threading.Thread(target=func, args=(condition, condition_negative))
+      t.setDaemon(True)
+      t.start()
 
-      # last_num = int(ModelSetting.get('hitomi_last_num'))
-      
-      # for num in range(0, last_num + 1):
-      #   with open(os.path.join(LogicHitomi.basepath, 'galleries'+str(num)+'.json')) as galleries:
-      #     import json
-      #     json_item = json.loads(galleries.read())
-
-      #     for idx, gallery in enumerate(json_item):
-      #       try:
-      #         if LogicHitomi.is_satisfied(gallery, condition, condition_negative):
-      #           tmp = gallery
-      #           tmp['thumbnail'] = ''
-      #           tmp['url'] = LogicHitomi.baseurl + str(gallery['id']) + '.html'
-
-      #           ret.append(tmp)
-
-      #           logger.debug('found item: %s', tmp['n'])
-      #       except Exception as e:
-      #         import traceback
-      #         logger.error('Exception:%s', e)
-      #         logger.error(traceback.format_exc())
-      #         # no such key for this item
-          
-      #     galleries.close()
-
-      galleries = LogicHitomi.find_gallery(condition, condition_negative)
-      
-      from .plugin import send_search_result
-      send_search_result(galleries)
     except Exception as e:
       logger.error('Exception:%s', e)
       logger.error(traceback.format_exc())
-
 
 
   @staticmethod
@@ -335,13 +311,15 @@ class LogicHitomi:
         condition_negative['c'] = ModelSetting.get('b_character').split('||')
         condition_negative['l'] = ModelSetting.get('b_language').split('||')
 
-        urls = LogicHitomi.return_url(condition_positive, condition_negative)
-        for url in urls:
-          # logger.debug('added by scheduler: %s', url)
-          LogicQueue.add_queue(url)
+        def func(condition_positive, condition_negative):
+          urls = LogicHitomi.return_url(condition_positive, condition_negative)
+          for url in urls:
+            # logger.debug('added by scheduler: %s', url)
+            LogicQueue.add_queue(url)
 
-        import plugin
-        plugin.send_queue_list()
+        t = threading.Thread(target=func, args=(condition_positive, condition_negative))
+        t.setDaemon(True)
+        t.start()
       except Exception as e:
         logger.error('Exception:%s', e)
         logger.error(traceback.format_exc())
@@ -386,6 +364,13 @@ function image_url_from_image(galleryid, image, no_webp) {
         
         return url_from_url_from_hash(galleryid, image, webp);
 }
+
+function full_path_from_hash(hash) {
+        if (hash.length < 3) {
+            return hash;
+        }
+        return hash.replace(/^.*(..)(.)$/, '$2/$1/' + hash);
+    }
 
 이미지 주소(webp):
 image_url_from_image

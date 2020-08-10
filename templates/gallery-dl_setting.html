@@ -14,7 +14,7 @@
         <div class="tab-content" id="nav-tabContent">
             {{ macros.m_tab_content_start('normal', true) }}
             {{ macros.setting_button([['install_btn', '설치/업데이트'], ['uninstall_btn', '삭제']], 'gallery-dl', '현재 버전: ' + arg['current_version'] ) }}
-            {{ macros.setting_button([['bypass', '우회'], ['undo_bypass'' ,'복원']], 'bypass', '차단된 사이트를 우회합니다.' ) }}
+            {{ macros.setting_button([['bypass', '우회'], ['undo_bypass' ,'복원']], 'bypass', '차단된 사이트를 우회합니다. docker버전에서만 가능합니다. sjva전체에 적용됩니다.' ) }}
             {{ macros.m_hr()}}
             {{ macros.info_text_go('github-gallery-dl', '원작자 repo', 'https://github.com/mikf/gallery-dl') }}
             {{ macros.m_tab_content_end() }}
@@ -66,6 +66,24 @@
             url: '/' + package_name + '/ajax/default_setting',
             success: function(data) {
                 command_modal_show('복원')
+            }
+        });
+    });
+
+    $("body").on('click', '#bypass', function(e) {
+        $.get({
+            url: '/' + package_name + '/ajax/bypass',
+            success: function(data) {
+                command_modal_show('설치')
+            }
+        });
+    });
+
+    $("body").on('click', '#undo_bypass', function(e) {
+        $.get({
+            url: '/' + package_name + '/ajax/undo_bypass',
+            success: function(data) {
+                command_modal_show('제거')
             }
         });
     });

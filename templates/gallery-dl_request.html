@@ -53,21 +53,42 @@
                 </div>
             </div>
 
-            <div class="row">
-                <div class='col align-self-start' style="left:40%;">
+            <div class="row col-3" style="max-width: 100%; width:350px; flex: 0 0 40%;">
+                <div class='col align-self-start' style="left:10%;">
                     <div>
                         <!-- 여기에 설명 작성 -->
                         <strong>구분자 ||<br>소문자 작성<br>제목, 언어는 OR로<br>나머지는 AND로 검색합니다.</strong>
                     </div>
                 </div>
                 <div class="w-100"></div>
-                <div class="col-4 align-self-end" style="left:40%;">
+                <div class="col-sm-9" style="left:10%">
+
+                    <div class="input-group col-3">
+
+                        <div class="toggle btn btn-primary" data-toggle="toggle" style="width: 61.0781px; height: 38px;"><input id="enable_thumbnail" name="enable_thumbnail" class="form-control form-control-sm" type="checkbox" data-toggle="toggle" checked="">
+                            <div class="toggle-group"><label class="btn btn-primary toggle-on">On</label><label class="btn btn-light toggle-off">Off</label><span class="toggle-handle btn btn-light"></span></div>
+                        </div>
+
+                    </div>
+
+
+                    <div style="padding-left:20px; padding-top:5px;">
+                        <em>
+
+                            On : 썸네일을 표시합니다.
+
+                        </em>
+                    </div>
+
+                </div>
+                <div class="w-100"></div>
+                <div class="col-4 align-self-end" style="left:10%;">
                     <button id="search_btn" class="btn btn-sm btn-outline-success">검색</button>
                 </div>
-                <div class="col-2 align-self-end" style="left:40%;">
+                <div class="col-2 align-self-end" style="left:10%;">
                     <button id="before_btn" class="btn btn-sm btn-outline-success">이전</button>
                 </div>
-                <div class="col-2 align-self-end" style="left:40%;">
+                <div class="col-2 align-self-end" style="left:10%;">
                     <button id="next_btn" class="btn btn-sm btn-outline-success">다음</button>
                 </div>
             </div>
@@ -107,25 +128,30 @@
 
 
 <script type="text/javascript">
+    const package_name = 'gallery-dl';
     const delta = 15
-    let package_name = 'gallery-dl';
+    const protocol = window.location.protocol;
+    const socket = io.connect(protocol + "//" + document.domain + ":" + location.port + "/" + package_name);
     let static_index = delta;
     let result_length = 0;
-    let search_result = null;
+    let search_result = [];
     let enable_searcher = "{{ arg['enable_searcher'] }}";
-
 
     $(document).ready(function() {
         static_index = delta;
-        const protocol = window.location.protocol;
-        const socket = io.connect(protocol + "//" + document.domain + ":" + location.port + "/" + package_name);
 
         socket.on('hitomi_search_result', function(data) {
             console.log(data);
             search_result = data;
-            result_length = data.length;
-            make_search_result(data);
-        })
+            result_length = search_result.length;
+            make_search_result(search_result);
+        });
+
+        socket.on('hitomi_result_one', (data) => {
+            search_result.push(data);
+            result_length = search_result.length
+            make_search_result(search_result);
+        });
     })
 
     function make_search_result(data) {
@@ -260,6 +286,9 @@
         }
 
         e.preventDefault();
+        search_result = [];
+        result_length = 0;
+        static_index = delta;
         document.getElementById("search_result_list").innerHTML = ''
 
         title = document.getElementById('title').value
@@ -270,26 +299,23 @@
         character = document.getElementById('character').value
         language = document.getElementById('language').value
 
-        $.ajax({
-            url: '/' + package_name + '/ajax/search',
-            type: 'POST',
-            cache: false,
-            data: {
-                n: title,
-                a: artist,
-                g: group,
-                t: tags,
-                type: _type,
-                c: character,
-                l: language
-            },
-            dataType: 'json'
-        });
+        let data = {
+            n: title,
+            a: artist,
+            g: group,
+            t: tags,
+            type: _type,
+            c: character,
+            l: language
+        };
+
+        socket.emit('search', data);
         $.notify(`<strong>검색 중 입니다...</strong>`, {
             type: 'success'
         });
 
         $('#search_result').collapse('show')
+
     });
 
 
@@ -313,5 +339,90 @@
         static_index > result_length ? static_index : static_index += delta;
         make_search_result(search_result);
     });
+
+
+
+    // https://ltn.hitomi.la/common.js
+
+    "use strict";
+
+    var adapose = false;
+    var loading_timer;
+    var domain = (/^dev\./.test(document.location.hostname.toString()) ? 'dev' : 'ltn') + '.hitomi.la';
+    var galleryblockextension = '.html';
+    var galleryblockdir = 'galleryblock';
+    var nozomiextension = '.nozomi';
+
+    function subdomain_from_galleryid(g, number_of_frontends) {
+        if (adapose) {
+            return '0';
+        }
+
+        var o = g % number_of_frontends;
+
+        return String.fromCharCode(97 + o);
+    }
+
+    function subdomain_from_url(url, base) {
+        var retval = 'a';
+        if (base) {
+            retval = base;
+        }
+
+        var number_of_frontends = 3;
+        var b = 16;
+
+        var r = /\/[0-9a-f]\/([0-9a-f]{2})\//;
+        var m = r.exec(url);
+        if (!m) {
+            return retval;
+        }
+
+        var g = parseInt(m[1], b);
+        if (!isNaN(g)) {
+            if (g < 0x30) {
+                number_of_frontends = 2;
+            }
+            if (g < 0x09) {
+                g = 1;
+            }
+            retval = subdomain_from_galleryid(g, number_of_frontends) + retval;
+        }
+
+        return retval;
+    }
+
+    function url_from_url(url, base) {
+        return url.replace(/\/\/..?\.hitomi\.la\//, '//' + subdomain_from_url(url, base) + '.hitomi.la/');
+    }
+
+
+    function full_path_from_hash(hash) {
+        if (hash.length < 3) {
+            return hash;
+        }
+        return hash.replace(/^.*(..)(.)$/, '$2/$1/' + hash);
+    }
+
+
+    function url_from_hash(galleryid, image, dir, ext) {
+        ext = ext || dir || image.name.split('.').pop();
+        dir = dir || 'images';
+
+        return 'https://a.hitomi.la/' + dir + '/' + full_path_from_hash(image.hash) + '.' + ext;
+    }
+
+    function url_from_url_from_hash(galleryid, image, dir, ext, base) {
+        return url_from_url(url_from_hash(galleryid, image, dir, ext), base);
+    }
+
+    function image_url_from_image(galleryid, image, no_webp) {
+        var webp;
+        if (image['hash'] && image['haswebp'] && !no_webp) {
+            webp = 'webp';
+        }
+
+        return url_from_url_from_hash(galleryid, image, webp);
+    }
 </script>
 {% endblock %}

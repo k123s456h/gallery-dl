@@ -2,134 +2,147 @@
 {% block content %}
 
 <div>
-  {{ macros.m_button_group([['reset_queue_btn', '초기화'], ['completed_remove_btn', '완료된 항목 삭제']])}}
-  {{ macros.m_row_start('0') }}
-  {{ macros.m_row_end() }}
+    {{ macros.m_button_group([['reset_queue_btn', '초기화'], ['completed_remove_btn', '완료된 항목 삭제']])}}
+    {{ macros.m_row_start('0') }}
+    {{ macros.m_row_end() }}
 
-  {{ macros.m_hr_head_top() }}
-  {{ macros.m_row_start('5') }}
-  {{ macros.m_col(1,  macros.m_strong('Category')) }}
-  {{ macros.m_col(4,  macros.m_strong('Title')) }}
-  {{ macros.m_col(4,  macros.m_strong('url')) }}
-  {{ macros.m_col(1,  macros.m_strong('pages')) }}
-  {{ macros.m_col(1,  macros.m_strong('Status')) }}
-  {{ macros.m_col(1,  macros.m_strong('Progress')) }}
-  {{ macros.m_row_end() }}
-  {{ macros.m_hr_head_bottom() }}
-  <div id="queue_list_div"></div>
-</div> <!--전체-->
+    {{ macros.m_hr_head_top() }}
+    {{ macros.m_row_start('5') }}
+    {{ macros.m_col(1,  macros.m_strong('Category')) }}
+    {{ macros.m_col(4,  macros.m_strong('Title')) }}
+    {{ macros.m_col(4,  macros.m_strong('url')) }}
+    {{ macros.m_col(1,  macros.m_strong('pages')) }}
+    {{ macros.m_col(1,  macros.m_strong('Status')) }}
+    {{ macros.m_col(1,  macros.m_strong('Progress')) }}
+    {{ macros.m_row_end() }}
+    {{ macros.m_hr_head_bottom() }}
+    <div id="queue_list_div"></div>
+</div>
+<!--전체-->
 
 
 <script type="text/javascript">
-var package_name = 'gallery-dl';
-var current_data = null;
+    var package_name = 'gallery-dl';
+    var current_data = null;
 
-$(document).ready(function(){
-  var protocol = window.location.protocol;
-  socket = io.connect(protocol + "//" + document.domain + ":" + location.port + "/" + package_name);
+    $(document).ready(function() {
+        var protocol = window.location.protocol;
+        socket = io.connect(protocol + "//" + document.domain + ":" + location.port + "/" + package_name);
 
-  socket.on('queue_list', function(data){
-    on_queue_list(data);
-  });
+        socket.on('queue_list', function(data) {
+            on_queue_list(data);
+        });
 
-  socket.on('queue_one', function(data){
-    //console.log(data)
-    str = make_queue_one(data)
-    let element = document.getElementById("queue_" + data['id'] + "_div")
-    if(element.previousSibling != null){
-      str = m_hr(0) + str
+        socket.on('queue_one', function(data) {
+            //console.log(data)
+            str = make_queue_one(data)
+            let element = document.getElementById("queue_" + data['id'] + "_div");
+
+            if (element === undefined || element === null) {
+                let parent = document.getElementById("queue_list_div");
+                if (parent.children.length) {
+                    str = m_hr(0) + str;
+                }
+                str = new DOMParser().parseFromString(str, "text/xml");
+                parent.append(str)
+                return;
+            }
+
+            if (element.previousSibling != null) {
+                str = m_hr(0) + str
+            }
+            element.innerHTML = str;
+        });
+    });
+
+    function on_queue_list(data) {
+        current_data = data
+        make_queue_list(data)
     }
-    element.innerHTML = str;
-  });
-});
 
-function on_queue_list(data) {
-  current_data = data
-  make_queue_list(data)
-}
-
-function make_queue_list(data) {
-  str = '';
-  for (i in data) {
-    str += '<div id="queue_'+data[i]['id']+'_div">'
-    str += make_queue_one(data[i])
-    str += '</div>' //one
-    if (i != data.length -1) str += m_hr(0);
-  }
-  document.getElementById("queue_list_div").innerHTML = str;
-}
-
-function make_queue_one(data) {
-  str = m_row_start();
-
-  category = data['category']
-  title = data['title']
-  url = data['url']
-  pages = data['total_image_count']*1
-  status = data['status']
-  if( pages == 0 ){
-    percent = 0
-  }else{
-    percent = data['index']*100 / pages;
-    percent = parseInt(percent)
-    if(percent >= 100 || status == '완료'){
-      percent = 100
+    function make_queue_list(data) {
+        str = '';
+        for (i in data) {
+            str += '<div id="queue_' + data[i]['id'] + '_div">'
+            str += make_queue_one(data[i])
+            str += '</div>' //one
+            if (i != data.length - 1) str += m_hr(0);
+        }
+        document.getElementById("queue_list_div").innerHTML = str;
     }
-  }
 
-  str += m_col(1, category)
-  str += m_col(4, title)
-  str += m_col(4, url)
-  str += m_col(1, pages)
-  str += m_col(1, status)
-  str += m_col(1, percent + "%")
-  str += m_row_end();
-  return str
-}
+    function make_queue_one(data) {
 
-// $("body").on('click', '#toggle_btn', function(e){
-//   e.preventDefault();
-//   index = $(this).data("index")
-//   if ($('#toggle_'+index+'_div').hasClass('collapse show') == false) {
-//     $('#toggle_' + index + '_div').collapse('show')
-//   } else {
-//     $('#toggle_' + index + '_div').collapse('hide')
-//   }
-// });
 
-$("body").on('click', '#completed_remove_btn', function(e){
-  e.preventDefault();
-  $.ajax({
-    url: '/' + package_name + '/ajax/completed_remove',
-    type: "POST",
-    cache: false,
-    data: {},
-    dataType: "json",
-    success: function (ret) {}
-  });
-});
+        str = m_row_start();
 
-$("body").on('click', '#reset_queue_btn', function(e){
-  e.preventDefault();
-  $.ajax({
-    url: '/' + package_name + '/ajax/reset_queue',
-    type: "POST",
-    cache: false,
-    data: {},
-    dataType: "json",
-    success: function (ret) {
+        category = data['category']
+        title = data['title']
+        url = data['url']
+        pages = data['total_image_count'] * 1
+        status = data['status']
+        if (pages == 0) {
+            percent = 0
+        } else {
+            percent = data['index'] * 100 / pages;
+            percent = parseInt(percent)
+            if (percent >= 100 || status == '완료') {
+                percent = 100
+            }
+        }
+
+        str += m_col(1, category)
+        str += m_col(4, title)
+        str += m_col(4, url)
+        str += m_col(1, pages)
+        str += m_col(1, status)
+        str += m_col(1, percent + "%")
+        str += m_row_end();
+        return str
     }
-  });
-});
 
-// $("body").on('click', '#all_show_btn', function(e){
-//   e.preventDefault();
-//   $("div[id^='toggle_']").collapse('show')
-// });
+    // $("body").on('click', '#toggle_btn', function(e){
+    //   e.preventDefault();
+    //   index = $(this).data("index")
+    //   if ($('#toggle_'+index+'_div').hasClass('collapse show') == false) {
+    //     $('#toggle_' + index + '_div').collapse('show')
+    //   } else {
+    //     $('#toggle_' + index + '_div').collapse('hide')
+    //   }
+    // });
 
-// $("body").on('click', '#all_hide_btn', function(e){
-//   e.preventDefault();
-//   $("div[id^='toggle_']").collapse('hide')
-// });
+    $("body").on('click', '#completed_remove_btn', function(e) {
+        e.preventDefault();
+        $.ajax({
+            url: '/' + package_name + '/ajax/completed_remove',
+            type: "POST",
+            cache: false,
+            data: {},
+            dataType: "json",
+            success: function(ret) {}
+        });
+    });
+
+    $("body").on('click', '#reset_queue_btn', function(e) {
+        e.preventDefault();
+        $.ajax({
+            url: '/' + package_name + '/ajax/reset_queue',
+            type: "POST",
+            cache: false,
+            data: {},
+            dataType: "json",
+            success: function(ret) {}
+        });
+    });
+
+    // $("body").on('click', '#all_show_btn', function(e){
+    //   e.preventDefault();
+    //   $("div[id^='toggle_']").collapse('show')
+    // });
+
+    // $("body").on('click', '#all_hide_btn', function(e){
+    //   e.preventDefault();
+    //   $("div[id^='toggle_']").collapse('hide')
+    // });
 </script>
 {% endblock %}

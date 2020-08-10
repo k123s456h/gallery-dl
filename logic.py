@@ -86,7 +86,7 @@ class Logic(object):
                 from datetime import datetime
                 before = ModelSetting.get('hitomi_last_time')
                 if (datetime.now() - datetime.strptime(before, '%Y-%m-%d %H:%M:%S')).days >= 1:
-                    LogicHitomi.download_json()
+                    LogicHitomi.download_json.apply_async()
             
             # 자동시작 옵션이 있으면 보통 여기서
             if ModelSetting.get_bool('auto_start'):
@@ -286,14 +286,14 @@ class Logic(object):
     def bypass():
         try:
             def func():
-                install_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'bin/iptablse.sh')
+                install_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'bin/iptables.sh')
                 os.chmod(install_path, 777)
 
                 import system
                 commands = [
                     ['msg', u'잠시만 기다려주세요.'],
                     [install_path],
-                    ['msg', u'설치가 완료되었습니다.']
+                    ['msg', u'<head><title>301 Moved Permanently</title></head>가 보이면 정상입니다.']
                 ]
                 system.SystemLogicCommand.start('설치', commands)
             t = threading.Thread(target=func, args=())
