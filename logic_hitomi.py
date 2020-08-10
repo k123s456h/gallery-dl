@@ -34,11 +34,6 @@ import requests
 from fake_useragent import UserAgent
 #########################################################
 
-'''
-condition
-language:["korean"],
-artist:["a", "b"]
-'''
 
 class LogicHitomi:
 
@@ -77,6 +72,8 @@ class LogicHitomi:
   @staticmethod
   def download_json():
     try:
+      logger.debug("### gallery-dl: downloading hitomi json file")
+
       bundle_json = LogicHitomi.bundlejson()
 
       last_num = ""
@@ -107,12 +104,28 @@ class LogicHitomi:
     galleries0_forbidden.json
     '''
 
+  @staticmethod
+  def trim_condition(condition={}):
+    def remove(d, k):
+      r = dict(d)
+      del r[k]
+      return r
+    
+    for key in condition:
+      if len(condition[key]) == 0:
+        condition = remove(condition, key)
+      elif len(condition[key]) == 1 and len(condition[key][0]) == 0:
+        condition = remove(condition, key)
+    
+    return condition
+
 
   @staticmethod
   def is_satisfied(gallery={}, condition={}, condition_negative={}):
     import json
 
-    flag = True
+    condition = LogicHitomi.trim_condition(condition)
+    condition_negative = LogicHitomi.trim_condition(condition_negative)
 
     for key, value in condition.items():  # AND
       key = key.encode('utf-8')
@@ -124,21 +137,18 @@ class LogicHitomi:
 
       try:
         if key in ['a', 't', 'p', 'g', 'c']:
-          
-          tmp = False
+
           for condition_value in value:
+            tmp = False
             for gallery_value in gallery[key]:
-              if condition_value in gallery_value:
+              if condition_value.strip().lower() in gallery_value.strip().lower():
                 tmp = True
-                break
-          if tmp == False:
-            flag = False
-            break
+            if tmp == False:
+              return False
 
         else:
-          if gallery[key].lower() not in value:
-            flag = False
-            break
+          if gallery[key].strip().lower() not in value:
+            return False
       except Exception as e:
         logger.debug("Exception at: %s %s", type(gallery[key]) ,str(gallery[key]))
         logger.error('Exception:%s', e)
@@ -157,35 +167,29 @@ class LogicHitomi:
 
         for condition_value in value:
           for gallery_value in gallery[key]:
-            if condition_value in gallery_value:
-              flag = False
-              break
+            if condition_value.strip().lower() in gallery_value.strip().lower():
+              return False
 
       else:
-        if gallery[key].lower() not in value:
-          flag = False
-          break
+        if gallery[key].strip().lower() not in value:
+          return False
 
-    return flag
+    return True
 
 
   @staticmethod
-  def find_gallery(condition={}, condition_negative={}):
+  def find_gallery(condition, condition_negative):
     try:
       # condition: { key1:[val1], key2:[val2] }
       # key:
       # type, id, l, n, a [],  t [],  p [], g [], c []
       # galleries0.json is the latest
+      logger.debug("search condition: %s", str(condition))
+
       ret = []
-      if len(condition) == 0:
-        return ret
 
       last_num = int(ModelSetting.get('hitomi_last_num'))
 
-      def parse(value):
-        import json
-        return json.loads(value)
-      
       for num in range(0, last_num + 1):
         item = "galleries" + str(num) + ".json"
         with open(os.path.join(LogicHitomi.basepath, item)) as galleries:
@@ -194,6 +198,9 @@ class LogicHitomi:
           for idx, gallery in enumerate(json_item):
             try:
               if LogicHitomi.is_satisfied(gallery, condition, condition_negative):
+                gallery['thumbnail'] = ''
+                gallery['url'] = LogicHitomi.baseurl + str(gallery['id']) + '.html'
+                logger.debug('found item: %s', gallery['n'])
                 ret.append(gallery)
             except Exception as e:
               import traceback
@@ -209,37 +216,11 @@ class LogicHitomi:
   @staticmethod
   def return_url(condition, condition_negative):
     urls = []
-    galleris = LogicHitomi.find_gallery(condition, condition_negative)
-    for gallery in galleris:
-      url = LogicHitomi.baseurl + str(gallery['id']) + '.html'
-      urls.append(url)
+    galleries = LogicHitomi.find_gallery(condition, condition_negative)
+    for gallery in galleries:
+      urls.append(gallery['url'])
     return urls
-  
-  @staticmethod
-  def scheduler_function():
-      from logic_queue import LogicQueue
-      logger.debug('gallery-dl scheduler downlist_hitomi Start')
-      try:
-        condition_positive = {}
-        condition_negative = {}
 
-        downlist = ModelSetting.get('downlist_hitomi')
-        downlist = downlist.split('\n')
-        blacklist = ModelSetting.get('blacklist_hitomi')
-        blacklist = blacklist.split('\n')
-
-        condition_positive = LogicHitomi.list_to_dict(downlist)
-        condition_negative = LogicHitomi.list_to_dict(blacklist)
-        
-        urls = return_url(condition_positive, condition_negative)
-        for url in urls:
-          LogicQueue.add_queue(url)
-
-        import plugin
-        plugin.send_queue_list()
-      except Exception as e:
-        logger.error('Exception:%s', e)
-        logger.error(traceback.format_exc())
   
   @staticmethod
   def list_to_dict(condition_list):
@@ -282,56 +263,90 @@ class LogicHitomi:
       condition['c'] = req.form['c'].split('||')
       condition['l'] = req.form['l'].split('||')
       
-      condition_negative={} # TODO: modalsetting에서 불러오기
+      condition_negative={}
+      condition_negative['n'] = ModelSetting.get('b_title').split('||')
+      condition_negative['a'] = ModelSetting.get('b_artist').split('||')
+      condition_negative['g'] = ModelSetting.get('b_group').split('||')
+      condition_negative['t'] = ModelSetting.get('b_tags').split('||')
+      condition_negative['type'] = ModelSetting.get('b_type').split('||')
+      condition_negative['c'] = ModelSetting.get('b_character').split('||')
+      condition_negative['l'] = ModelSetting.get('b_language').split('||')
 
-      def remove(d, k):
-        r = dict(d)
-        del r[k]
-        return r
+      # logger.debug("search condition: %s", str(condition))
 
-      for key in condition:
-        if len(condition[key]) == 0:
-          condition = remove(condition, key)
-        elif len(condition[key]) == 1 and len(condition[key][0]) == 0:
-          condition = remove(condition, key)
+      # ret = []
+
+      # last_num = int(ModelSetting.get('hitomi_last_num'))
       
-      if len(condition) == 0:
-        return False
+      # for num in range(0, last_num + 1):
+      #   with open(os.path.join(LogicHitomi.basepath, 'galleries'+str(num)+'.json')) as galleries:
+      #     import json
+      #     json_item = json.loads(galleries.read())
 
-      logger.debug("search condition: %s", str(condition))
+      #     for idx, gallery in enumerate(json_item):
+      #       try:
+      #         if LogicHitomi.is_satisfied(gallery, condition, condition_negative):
+      #           tmp = gallery
+      #           tmp['thumbnail'] = ''
+      #           tmp['url'] = LogicHitomi.baseurl + str(gallery['id']) + '.html'
 
-      ret = []
+      #           ret.append(tmp)
 
-      last_num = int(ModelSetting.get('hitomi_last_num'))
-      
-      for num in range(0, last_num + 1):
-        with open(os.path.join(LogicHitomi.basepath, 'galleries'+str(num)+'.json')) as galleries:
-          import json
-          json_item = json.loads(galleries.read())
-
-          for idx, gallery in enumerate(json_item):
-            try:
-              if LogicHitomi.is_satisfied(gallery, condition, condition_negative):
-                tmp = gallery
-                tmp['thumbnail'] = ''
-                tmp['url'] = LogicHitomi.baseurl + str(gallery['id']) + '.html'
-
-                ret.append(tmp)
-
-                logger.debug('found item: %s', tmp['n'])
-            except Exception as e:
-              import traceback
-              logger.error('Exception:%s', e)
-              logger.error(traceback.format_exc())
-              # no such key for this item
+      #           logger.debug('found item: %s', tmp['n'])
+      #       except Exception as e:
+      #         import traceback
+      #         logger.error('Exception:%s', e)
+      #         logger.error(traceback.format_exc())
+      #         # no such key for this item
           
-          galleries.close()
+      #     galleries.close()
+
+      galleries = LogicHitomi.find_gallery(condition, condition_negative)
       
       from .plugin import send_search_result
-      send_search_result(ret)
+      send_search_result(galleries)
     except Exception as e:
       logger.error('Exception:%s', e)
       logger.error(traceback.format_exc())
+
+
+
+  @staticmethod
+  def scheduler_function():
+      from logic_queue import LogicQueue
+      logger.debug('gallery-dl scheduler hitomi Start')
+      try:
+        condition_positive = {}
+        condition_negative = {}
+
+        condition_positive['n'] = ModelSetting.get('p_title').split('||')
+        condition_positive['a'] = ModelSetting.get('p_artist').split('||')
+        condition_positive['g'] = ModelSetting.get('p_group').split('||')
+        condition_positive['t'] = ModelSetting.get('p_tags').split('||')
+        condition_positive['type'] = ModelSetting.get('p_type').split('||')
+        condition_positive['c'] = ModelSetting.get('p_character').split('||')
+        condition_positive['l'] = ModelSetting.get('p_language').split('||')
+
+        condition_negative['n'] = ModelSetting.get('b_title').split('||')
+        condition_negative['a'] = ModelSetting.get('b_artist').split('||')
+        condition_negative['g'] = ModelSetting.get('b_group').split('||')
+        condition_negative['t'] = ModelSetting.get('b_tags').split('||')
+        condition_negative['type'] = ModelSetting.get('b_type').split('||')
+        condition_negative['c'] = ModelSetting.get('b_character').split('||')
+        condition_negative['l'] = ModelSetting.get('b_language').split('||')
+
+        urls = LogicHitomi.return_url(condition_positive, condition_negative)
+        for url in urls:
+          # logger.debug('added by scheduler: %s', url)
+          LogicQueue.add_queue(url)
+
+        import plugin
+        plugin.send_queue_list()
+      except Exception as e:
+        logger.error('Exception:%s', e)
+        logger.error(traceback.format_exc())
+
+
 '''
     try:
       pass

@@ -1,151 +1,152 @@
 {% extends "base.html" %}
 {% block content %}
 <div>
-  {{ macros.m_button_group([['global_setting_save_btn', '설정 저장']])}}
-  {{ macros.m_row_start('5') }}
-  {{ macros.m_row_end() }}
-  <nav>
-    {{ macros.m_tab_head_start() }}
-    {{ macros.m_tab_head2('normal', '일반', true) }}
-    {{ macros.m_tab_head_end() }}
-  </nav>
-  <form id='setting' name='setting'>
-    <div class="tab-content" id="nav-tabContent">
-      {{ macros.m_tab_content_start('normal', true) }}
-        {{ macros.setting_global_scheduler_button(arg['scheduler'], arg['is_running']) }}
-        {{ macros.setting_input_text('interval', '스케쥴링 실행 정보', value=arg['interval'], col='3', desc=['Inverval(minute 단위)이나 Cron 설정']) }}
-        {{ macros.setting_input_textarea('downlist_normal', '자동 다운로드 할 url', value=arg['downlist_normal'], row='9', desc=['구분자 엔터', '빈칸인 경우 모두 다운로드합니다.']) }}
+    {{ macros.m_button_group([['global_setting_save_btn', '설정 저장']])}}
+    {{ macros.m_row_start('5') }}
+    {{ macros.m_row_end() }}
+    <nav>
+        {{ macros.m_tab_head_start() }}
+        {{ macros.m_tab_head2('normal', '일반', true) }}
+        {{ macros.m_tab_head_end() }}
+    </nav>
+    <form id='setting' name='setting'>
+        <div class="tab-content" id="nav-tabContent">
+            {{ macros.m_tab_content_start('normal', true) }}
+            {{ macros.setting_global_scheduler_button(arg['global_scheduler'], arg['is_running']) }}
+            {{ macros.setting_input_text('interval', '스케쥴링 실행 정보', value=arg['interval'], col='3', desc=['Inverval(단위: hour)']) }}
+            {{ macros.setting_checkbox('auto_start', '시작시 자동실행', value=arg['auto_start'], desc='On : 시작시 자동으로 스케쥴러에 등록됩니다.') }}
+            {{ macros.setting_input_textarea('downlist_normal', '자동 다운로드 할 url', value=arg['downlist_normal'], row='9', desc=['구분자 엔터']) }}
 
-        <div class="row" style="padding-top: 10px; padding-bottom:10px; align-items: center;">
-          <div class="col-sm-3 set-left">
-            <strong>히토미 자동 다운로드 옵션</strong>
-          </div>
+            {{ macros.setting_checkbox('enable_searcher', '검색기 사용', value=arg['enable_searcher'], desc='On : 히토미 데이터를 저장해서 검색 기능을 사용합니다. 데이터 다운로드 시에 sjva로딩이 느려질 수 있습니다.
+            사용하지 않으면 히토미 자동 다운로드와 검색기 사용이 불가합니다.') }}
 
-          <div class="col-sm-7 row list-group">
-            <div class="row" style="height: 32px;">
-              <div class="col-sm-2 set-left"><strong>제목</strong></div>
-              <input id="p_title" name="p_title" type="text" class="list-group-item form-control form-control-sm col-sm-9"
-                style="padding: .25rem .5rem;" value={{arg['p_title']}}>
-            </div>
-            <div class="row" style="height: 32px;">
-              <div class="col-sm-2 set-left"><strong>작가</strong></div>
-        
-              <input id="p_artist" name="p_artist" type="text" class="list-group-item form-control form-control-sm col-sm-9"
-                style="padding: .25rem .5rem;" value={{arg['p_artist']}}>
-        
-            </div>
-            <div class="row" style="height: 32px;">
-              <div class="col-sm-2 set-left"><strong>그룹</strong></div>
-              <input id="p_group" name="p_group" type="text" class="list-group-item form-control form-control-sm col-sm-9"
-                style="padding: .25rem .5rem;" value={{arg['p_group']}}>
-            </div>
-            <div class="row" style="height: 32px;">
-              <div class="col-sm-2 set-left"><strong>태그</strong></div>
-              <input id="p_tags" name="p_tags" type="text" class="list-group-item form-control form-control-sm col-sm-9"
-                style="padding: .25rem .5rem;" value={{arg['p_tags']}}>
-            </div>
-            <div class="row" style="height: 32px;">
-              <div class="col-sm-2 set-left"><strong>종류</strong></div>
-              <input id="p_type" name="p_type" type="text" class="list-group-item form-control form-control-sm col-sm-9"
-                style="padding: .25rem .5rem;" value={{arg['p_type']}}>
-            </div>
-            <div class="row" style="height: 32px;">
-              <div class="col-sm-2 set-left"><strong>캐릭터</strong></div>
-              <input id="p_character" name="p_character" type="text" class="list-group-item form-control form-control-sm col-sm-9"
-                style="padding: .25rem .5rem;" value={{arg['p_character']}}>
-            </div>
-            <div class="row" style="height: 32px;">
-              <div class="col-sm-2 set-left"><strong>언어</strong></div>
-              <input id="p_language" name="p_language" type="text" class="list-group-item form-control form-control-sm col-sm-9"
-                style="padding: .25rem .5rem;" value={{arg['p_language']}}>
-            </div>
-          </div>
+            <div id='enable_searcher_div' class="collapse">
+                <div class="row" style="padding-top: 10px; padding-bottom:10px; align-items: center;">
+                    <div class="col-sm-3 set-left">
+                        <strong>히토미 자동 다운로드 옵션</strong>
+                    </div>
 
-          <div class="col-sm-2" style="padding-left:20px; padding-top:5px;">
-            <em>
-              구분자 ||<br>
-              소문자 사용 추천<br>
-            </em>
-          </div>
+                    <div class="col-sm-7 row list-group">
+                        <div class="row" style="height: 32px;">
+                            <div class="col-sm-2 set-left"><strong>제목</strong></div>
+                            <input id="p_title" name="p_title" type="text" class="list-group-item form-control form-control-sm col-sm-9" style="padding: .25rem .5rem;" value="{{arg['p_title']}}">
+                        </div>
+                        <div class=" row" style="height: 32px;">
+                            <div class="col-sm-2 set-left"><strong>작가</strong></div>
+
+                            <input id="p_artist" name="p_artist" type="text" class="list-group-item form-control form-control-sm col-sm-9" style="padding: .25rem .5rem;" value="{{arg['p_artist']}}">
+
+                        </div>
+                        <div class=" row" style="height: 32px;">
+                            <div class="col-sm-2 set-left"><strong>그룹</strong></div>
+                            <input id="p_group" name="p_group" type="text" class="list-group-item form-control form-control-sm col-sm-9" style="padding: .25rem .5rem;" value="{{arg['p_group']}}">
+                        </div>
+                        <div class=" row" style="height: 32px;">
+                            <div class="col-sm-2 set-left"><strong>태그</strong></div>
+                            <input id="p_tags" name="p_tags" type="text" class="list-group-item form-control form-control-sm col-sm-9" style="padding: .25rem .5rem;" value="{{arg['p_tags']}}">
+                        </div>
+                        <div class=" row" style="height: 32px;">
+                            <div class="col-sm-2 set-left"><strong>종류</strong></div>
+                            <input id="p_type" name="p_type" type="text" class="list-group-item form-control form-control-sm col-sm-9" style="padding: .25rem .5rem;" value="{{arg['p_type']}}">
+                        </div>
+                        <div class=" row" style="height: 32px;">
+                            <div class="col-sm-2 set-left"><strong>캐릭터</strong></div>
+                            <input id="p_character" name="p_character" type="text" class="list-group-item form-control form-control-sm col-sm-9" style="padding: .25rem .5rem;" value="{{arg['p_character']}}">
+                        </div>
+                        <div class=" row" style="height: 32px;">
+                            <div class="col-sm-2 set-left"><strong>언어</strong></div>
+                            <input id="p_language" name="p_language" type="text" class="list-group-item form-control form-control-sm col-sm-9" style="padding: .25rem .5rem;" value="{{arg['p_language']}}">
+                        </div>
+                    </div>
+
+                    <div class="col-sm-2" style="padding-left:20px; padding-top:5px;">
+                        <em>
+                            구분자 ||<br>
+                            소문자 사용 추천<br>
+                        </em>
+                    </div>
+                </div>
+
+                <div class="row" style="padding-top: 10px; padding-bottom:10px; align-items: center;">
+                    <div class="col-sm-3 set-left">
+                        <strong>제외 할 히토미 옵션<br></strong>
+                    </div>
+
+                    <div class="col-sm-7 row list-group">
+                        <div class="row" style="height: 32px;">
+                            <div class="col-sm-2 set-left"><strong>제목</strong></div>
+                            <input id="b_title" name="b_title" type="text" class="list-group-item form-control form-control-sm col-sm-9" style="padding: .25rem .5rem;" value="{{arg['b_title']}}">
+                        </div>
+                        <div class=" row" style="height: 32px;">
+                            <div class="col-sm-2 set-left"><strong>작가</strong></div>
+
+                            <input id="b_artist" name="b_artist" type="text" class="list-group-item form-control form-control-sm col-sm-9" style="padding: .25rem .5rem;" value="{{arg['b_artist']}}">
+
+                        </div>
+                        <div class=" row" style="height: 32px;">
+                            <div class="col-sm-2 set-left"><strong>그룹</strong></div>
+                            <input id="b_group" name="b_group" type="text" class="list-group-item form-control form-control-sm col-sm-9" style="padding: .25rem .5rem;" value="{{arg['b_group']}}">
+                        </div>
+                        <div class=" row" style="height: 32px;">
+                            <div class="col-sm-2 set-left"><strong>태그</strong></div>
+                            <input id="b_tags" name="b_tags" type="text" class="list-group-item form-control form-control-sm col-sm-9" style="padding: .25rem .5rem;" value="{{arg['b_tags']}}">
+                        </div>
+                        <div class=" row" style="height: 32px;">
+                            <div class="col-sm-2 set-left"><strong>종류</strong></div>
+                            <input id="b_type" name="b_type" type="text" class="list-group-item form-control form-control-sm col-sm-9" style="padding: .25rem .5rem;" value="{{arg['b_type']}}">
+                        </div>
+                        <div class=" row" style="height: 32px;">
+                            <div class="col-sm-2 set-left"><strong>캐릭터</strong></div>
+                            <input id="b_character" name="b_character" type="text" class="list-group-item form-control form-control-sm col-sm-9" style="padding: .25rem .5rem;" value="{{arg['b_character']}}">
+                        </div>
+                        <div class=" row" style="height: 32px;">
+                            <div class="col-sm-2 set-left"><strong>언어</strong></div>
+                            <input id="b_language" name="b_language" type="text" class="list-group-item form-control form-control-sm col-sm-9" style="padding: .25rem .5rem;" value="{{arg['b_language']}}">
+                        </div>
+                    </div>
+
+                    <div class=" col-sm-2" style="padding-left:20px; padding-top:5px;">
+                        <em>
+                            구분자 ||<br>
+                            소문자 사용 추천<br>
+                            검색창에서는 적용되지 않습니다.<br>
+                        </em>
+                    </div>
+                </div>
+            </div>
+
+
+            {{ macros.setting_button([['one_execute', '1회 실행']], left='', desc='') }}
+            {{ macros.m_tab_content_end() }}
+
+
         </div>
-
-        <div class="row" style="padding-top: 10px; padding-bottom:10px; align-items: center;">
-          <div class="col-sm-3 set-left">
-            <strong>제외 할 히토미 옵션</strong>
-          </div>
-        
-          <div class="col-sm-7 row list-group">
-            <div class="row" style="height: 32px;">
-              <div class="col-sm-2 set-left"><strong>제목</strong></div>
-              <input id="b_title" name="b_title" type="text" class="list-group-item form-control form-control-sm col-sm-9"
-                style="padding: .25rem .5rem;" value={{arg['b_title']}}>
-            </div>
-            <div class="row" style="height: 32px;">
-              <div class="col-sm-2 set-left"><strong>작가</strong></div>
-        
-              <input id="b_artist" name="b_artist" type="text" class="list-group-item form-control form-control-sm col-sm-9"
-                style="padding: .25rem .5rem;" value={{arg['b_artist']}}>
-        
-            </div>
-            <div class="row" style="height: 32px;">
-              <div class="col-sm-2 set-left"><strong>그룹</strong></div>
-              <input id="b_group" name="b_group" type="text" class="list-group-item form-control form-control-sm col-sm-9"
-                style="padding: .25rem .5rem;" value={{arg['b_group']}}>
-            </div>
-            <div class="row" style="height: 32px;">
-              <div class="col-sm-2 set-left"><strong>태그</strong></div>
-              <input id="b_tags" name="b_tags" type="text" class="list-group-item form-control form-control-sm col-sm-9"
-                style="padding: .25rem .5rem;" value={{arg['b_tags']}}>
-            </div>
-            <div class="row" style="height: 32px;">
-              <div class="col-sm-2 set-left"><strong>종류</strong></div>
-              <input id="b_type" name="b_type" type="text" class="list-group-item form-control form-control-sm col-sm-9"
-                style="padding: .25rem .5rem;" value={{arg['b_type']}}>
-            </div>
-            <div class="row" style="height: 32px;">
-              <div class="col-sm-2 set-left"><strong>캐릭터</strong></div>
-              <input id="b_character" name="b_character" type="text" class="list-group-item form-control form-control-sm col-sm-9"
-                style="padding: .25rem .5rem;" value={{arg['b_character']}}>
-            </div>
-            <div class="row" style="height: 32px;">
-              <div class="col-sm-2 set-left"><strong>언어</strong></div>
-              <input id="b_language" name="b_language" type="text" class="list-group-item form-control form-control-sm col-sm-9"
-                style="padding: .25rem .5rem;" value={{arg['b_language']}}>
-            </div>
-          </div>
-        
-          <div class="col-sm-2" style="padding-left:20px; padding-top:5px;">
-            <em>
-              구분자 ||<br>
-              소문자 사용 추천<br>
-              검색창에서는 적용되지 않습니다.<br>
-            </em>
-          </div>
-        </div>
-      
-      {{ macros.setting_button([['one_execute', '1회 실행']], left='', desc='') }}
-      {{ macros.m_tab_content_end() }}
-
-
-
-
-
-    </div>
-    <!--tab-content-->
-  </form>
+        <!--tab-content-->
+    </form>
 </div>
 <!--전체-->
 
 <script type="text/javascript">
-  let package_name = "{{ arg['package_name'] }}";
+    let package_name = "{{ arg['package_name'] }}";
 
-  $("body").on('click', '#one_execute', function (e) {
-      $.get({
-        url: '/' + package_name + '/ajax/one_execute',
-        success: function (data) {
-          console.log("success: ", data)
-        }
-      });
+    $("body").on('click', '#one_execute', function(e) {
+        $.get({
+            url: '/' + package_name + '/ajax/one_execute',
+            success: function(data) {
+                console.log("success: ", data)
+            }
+        });
+    });
+
+    $(document).ready(function() {
+        use_collapse('enable_searcher');
+    });
+
+    $('#enable_searcher').change(function() {
+        $.notify(`<strong>설정 저장하시고 재시작하세요.</strong>`, {
+            type: 'success'
+        });
+        use_collapse('enable_searcher');
     });
 </script>
 {% endblock %}

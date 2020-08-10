@@ -49,14 +49,15 @@ class LogicQueue(object):
         while True:
             try:
                 entity = LogicQueue.download_queue.get()
-                logger.debug('Queue receive item:%s %s', entity['url'])
+                logger.debug('Queue receive item: %s', entity['url'])
 
-                if entity['status'] == '완료':
-                    entity['status'] = '중복'
-                    entity['index'] = int(entity['total_image_count'])
-                    LogicGalleryDL.update_state('queue_one', entity)
-                else:
-                    LogicGalleryDL.download(entity)
+                # if entity['status'] == '완료':
+                #     entity['status'] = '중복'
+                #     entity['index'] = int(entity['total_image_count'])
+                #     LogicGalleryDL.entity_update('queue_one', entity)
+                # else:
+                #     LogicGalleryDL.download(entity)
+                LogicGalleryDL.download(entity)
                 LogicQueue.download_queue.task_done()    
             except Exception as e: 
                 logger.error('Exception:%s', e)
@@ -65,7 +66,7 @@ class LogicQueue(object):
     @staticmethod
     def add_queue(url):
         try:
-            entity = ModelGalleryDlItem.init(url)
+            entity = ModelGalleryDlItem.add(url)
             if entity is not None:
                 for idx, e in enumerate(LogicQueue.entity_list):
                     if e['url'] == entity['url']:

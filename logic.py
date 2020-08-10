@@ -20,6 +20,8 @@ from framework.logger import get_logger
 from .plugin import package_name, logger
 from .model import ModelSetting, ModelGalleryDlItem
 from .logic_queue import LogicQueue
+from .logic_gallerydl import LogicGalleryDL
+from .logic_hitomi import LogicHitomi
 
 #########################################################
 
@@ -28,8 +30,11 @@ class Logic(object):
     db_default = { 
         'db_version' : '1',
         'auto_start': 'False',
-        'interval': '120',
+        'interval': '1440',
+        'enable_searcher': 'False',
+
         'downlist_normal': '',
+
         'hitomi_last_time': "1970-01-01 00:00:01",
         'hitomi_last_num': "-1",
 
@@ -69,24 +74,26 @@ class Logic(object):
         try:
             logger.debug('%s plugin_load', package_name)
             # DB 초기화
-            Logic.db_init()
-            # 자동시작 옵션이 있으면 보통 여기서
-            if ModelSetting.get_bool('auto_start'):
-                Logic.scheduler_start()        
+            Logic.db_init()       
             # 편의를 위해 json 파일 생성
             from plugin import plugin_info
             Util.save_from_dict_to_json(plugin_info, os.path.join(os.path.dirname(__file__), 'info.json'))
             LogicQueue.queue_start()
 
             # hitomi 데이터 다운로드
-            from datetime import datetime
-            before = ModelSetting.get('hitomi_last_time')
-            if(datetime.now() - datetime.strptime(before, '%Y-%m-%d %H:%M:%S')).days >= 1:
-                from .logic_hitomi import LogicHitomi
-                LogicHitomi.download_json()
-                if ModelSetting.get_bool('auto_start'):
-                    from .logic_hitomi import LogicHitomi
-                    LogicHitomi.scheduler_function()
+            enable = ModelSetting.get_bool('enable_searcher')
+            if enable == True:
+                from datetime import datetime
+                before = ModelSetting.get('hitomi_last_time')
+                if (datetime.now() - datetime.strptime(before, '%Y-%m-%d %H:%M:%S')).days >= 1:
+                    LogicHitomi.download_json()
+            
+            # 자동시작 옵션이 있으면 보통 여기서
+            if ModelSetting.get_bool('auto_start'):
+                Logic.scheduler_start('normal')
+
+                if enable == True:
+                    Logic.scheduler_start('hitomi') 
         except Exception as e:
             logger.error('Exception:%s', e)
             logger.error(traceback.format_exc())
@@ -102,12 +109,12 @@ class Logic(object):
 
 
     @staticmethod
-    def scheduler_start():
+    def scheduler_start(sub):
         try:
-            # 자동 다운로드 (일반)
-            logger.debug('%s scheduler_start', package_name)
+            logger.debug('%s scheduler_start', package_name+'_'+sub)
             interval = ModelSetting.get('interval')
-            job = Job(package_name, package_name, interval, Logic.scheduler_function, u"gallery-dl", False)
+            job_id = '%s_%s' % (package_name, sub)
+            job = Job(package_name, job_id, interval, Logic.scheduler_function, u"gallery-dl_"+sub, False, args=sub)
             scheduler.add_job_instance(job)
         except Exception as e:
             logger.error('Exception:%s', e)
@@ -115,39 +122,42 @@ class Logic(object):
 
 
     @staticmethod
-    def scheduler_stop():
+    def scheduler_stop(sub):
         try:
-            logger.debug('%s scheduler_stop', package_name)
-            scheduler.remove_job(package_name)
+            job_id = '%s_%s' % (package_name, sub)
+            logger.debug('%s scheduler_stop', job_id)
+            scheduler.remove_job(job_id)
         except Exception as e:
             logger.error('Exception:%s', e)
             logger.error(traceback.format_exc())
 
     @staticmethod
-    def scheduler_function():
+    def scheduler_function(sub):
         try:
-            # logic_hitomi <- 얘는 json 업데이트할때 판별
-            # logic_gallerydl - LogicScheduler에서 스케쥴러 하나
-            from .logic_gallerydl import LogicGalleryDL
-            LogicNormal.scheduler_function()
+            if sub == 'normal':
+                LogicGalleryDL.scheduler_function()
+            elif sub == 'hitomi':
+                LogicHitomi.scheduler_function()
         except Exception as e:
             logger.error('Exception:%s', e)
             logger.error(traceback.format_exc())
 
 
     @staticmethod
-    def one_execute():
+    def one_execute(sub):
+        logger.debug("one execute: gallery-dl_%s", sub)
         try:
-            if scheduler.is_include(package_name):
-                if scheduler.is_running(package_name):
+            job_id = '%s_%s' % (package_name, sub)
+            if scheduler.is_include(job_id):
+                if scheduler.is_running(job_id):
                     ret = 'is_running'
                 else:
-                    scheduler.execute_job(package_name)
+                    scheduler.execute_job(job_id)
                     ret = 'scheduler'
             else:
                 def func():
                     time.sleep(2)
-                    Logic.scheduler_function()
+                    Logic.scheduler_function(sub)
                 threading.Thread(target=func, args=()).start()
                 ret = 'thread'
         except Exception as e: 
@@ -270,6 +280,52 @@ class Logic(object):
         except Exception as e:
             logger.error('Exception: %s', e)
             logger.error(traceback.format_exc())
+    
+    
+    @staticmethod
+    def bypass():
+        try:
+            def func():
+                install_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'bin/iptablse.sh')
+                os.chmod(install_path, 777)
+
+                import system
+                commands = [
+                    ['msg', u'잠시만 기다려주세요.'],
+                    [install_path],
+                    ['msg', u'설치가 완료되었습니다.']
+                ]
+                system.SystemLogicCommand.start('설치', commands)
+            t = threading.Thread(target=func, args=())
+            t.setDaemon(True)
+            t.start()
+        except Exception as e:
+            logger.error('Exception: %s', e)
+            logger.error(traceback.format_exc())
+
+    
+    @staticmethod
+    def undo_bypass():
+        try:
+            def func():
+                install_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'bin/undo_iptables.sh')
+                os.chmod(install_path, 777)
+
+                import system
+                commands = [
+                    ['msg', u'잠시만 기다려주세요.'],
+                    [install_path],
+                    ['msg', u'제거가 완료되었습니다.']
+                ]
+                system.SystemLogicCommand.start('제거', commands)
+            t = threading.Thread(target=func, args=())
+            t.setDaemon(True)
+            t.start()
+        except Exception as e:
+            logger.error('Exception: %s', e)
+            logger.error(traceback.format_exc())
+
+
     ##################################################################
 
     @staticmethod

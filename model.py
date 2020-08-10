@@ -99,6 +99,8 @@ class ModelSetting(db.Model):
                         gdl_conf.write(value)
                         gdl_conf.close()
                 else:
+                    if key == 'interval':
+                        value = str(int(value)*60)
                     logger.debug('Key:%s Value:%s', key, value)
                     entity = db.session.query(ModelSetting).filter_by(key=key).with_for_update().first()
                     entity.value = value
@@ -195,7 +197,7 @@ class ModelGalleryDlItem(db.Model):
             logger.error(traceback.format_exc())
 
     @staticmethod
-    def init(url):
+    def add(url):
         try:
             entity = db.session.query(ModelGalleryDlItem).filter_by(url=url).first()
             if entity is None:
@@ -205,9 +207,11 @@ class ModelGalleryDlItem(db.Model):
                 entity.status = u'대기'
                 db.session.add(entity)
                 db.session.commit()
-            # else:
-            #     if entity.status == '완료':
-            #         return None
+            else:
+                if entity.status == '완료':
+                    return None
+                else:
+                    return entity.as_dict()
             return entity.as_dict()
         except Exception as e:
             logger.error('Exception:%s', e)

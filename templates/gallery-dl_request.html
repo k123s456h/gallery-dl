@@ -57,7 +57,7 @@
                 <div class='col align-self-start' style="left:40%;">
                     <div>
                         <!-- 여기에 설명 작성 -->
-                        <strong>구분자 ||<br>소문자 작성<br>AND로 검색합니다.</strong>
+                        <strong>구분자 ||<br>소문자 작성<br>제목, 언어는 OR로<br>나머지는 AND로 검색합니다.</strong>
                     </div>
                 </div>
                 <div class="w-100"></div>
@@ -79,18 +79,18 @@
             {{ macros.m_col(3,  macros.m_strong('image')) }}
             {{ macros.m_col(7,  macros.m_strong('title')) }}
             {{ macros.m_row_end() }}
-            {{ macros.m_row_start('5') }}
+            <!-- {{ macros.m_row_start('5') }}
             {{ macros.m_col(2,  macros.m_strong('artist')) }}
-            {{ macros.m_col(3,  macros.m_strong('tags')) }}
+            {{ macros.m_col(2,  macros.m_strong('tags')) }}
+            {{ macros.m_col(2,  macros.m_strong('group')) }}
+            {{ macros.m_col(2,  macros.m_strong('parody')) }}
+            {{ macros.m_col(2,  macros.m_strong('character')) }}
             {{ macros.m_col(1,  macros.m_strong('type')) }}
             {{ macros.m_col(1,  macros.m_strong('language')) }}
-            {{ macros.m_col(1,  macros.m_strong('group')) }}
-            {{ macros.m_col(1,  macros.m_strong('parody')) }}
-            {{ macros.m_col(1,  macros.m_strong('character')) }}
-            {{ macros.m_row_end() }}
+            {{ macros.m_row_end() }} -->
             {{ macros.m_hr_head_bottom() }}
             <div id="search_result_list"></div>
-
+            <br>
             <div class='row'>
                 <div class="col-2 align-self-end" style="left:40%;">
                     <button id="before_btn" class="btn btn-sm btn-outline-success">이전</button>
@@ -112,6 +112,7 @@
     let static_index = delta;
     let result_length = 0;
     let search_result = null;
+    let enable_searcher = "{{ arg['enable_searcher'] }}";
 
 
     $(document).ready(function() {
@@ -150,34 +151,35 @@
             add_queue(url);
         });
 
-        $('.copy_option').click(function() {
-            copyText = $(this)[0];
-            copyText.select();
+
+        $('.copy_option').on('change', function() {
+            var value = `<input value="${$(this).val()}" id="selVal" />`;
+            $(value).insertAfter($(this));
+            $("#selVal").select();
             document.execCommand("Copy");
-            $.notify(`<strong>${copyText.value} 클립보드로 복사</strong>`, {
+            $.notify(`<strong>${$(this).val()} 클립보드로 복사</strong>`, {
                 type: 'success'
             });
+            $('body').find("#selVal").remove();
         });
-        Z
+
     }
 
     function make_list(array, placeholder) {
         let str = `<div class="input-group" style="padding-left:0px; padding-top:0px">
-            <select class="form-control form-control-sm">
-                <option value="${placeholder}" selected="">${placeholder}</option>
-        `;
+            <select class="form-control form-control-sm copy_option">
+                <option value="${placeholder}">${placeholder}</option>`;
 
         let length = array.length;
         if (length) {
             for (let i = 0; i < length; i++) {
-                str += `<option value="${array[i]}" class="copy_option">${array[i]}</option>`
+                str += `<option value="${array[i]}">${array[i]}</option>`;
             }
         }
 
         str += `</select></div>`;
         return str;
     }
-
 
     function make_queue_one(data) { // TODO: 
         // console.log(data['id'], data['n'], data['url'], data['t'], data['type'], data['a'])
@@ -205,23 +207,22 @@
         str += m_col(7, title)
         str += m_col(1, `<div class="col-1 align-self-end" style="left:40%;">
         <button value="${url}" class="manual_download_btn btn btn-sm btn-outline-success"> 다운로드 </button>
-        </div>
-        `)
+        </div>`)
         str += m_row_end();
 
         str += m_row_start()
         str += m_col(2, make_list(artist, 'artist'));
-        str += m_col(3, make_list(tags, 'tags'));
+        str += m_col(2, make_list(tags, 'tags'));
+        str += m_col(2, make_list(group, 'group'));
+        str += m_col(2, make_list(parody, 'parody'));
+        str += m_col(2, make_list(character, 'character'));
         str += m_col(1, _type);
         str += m_col(1, language);
-        str += m_col(1, make_list(group, 'group'));
-        str += m_col(1, make_list(parody, 'parody'));
-        str += m_col(1, make_list(character, 'character'));
         str += m_row_end();
+        str += m_hr(0);
 
         return str;
     }
-
 
     function add_queue(url) {
         $.ajax({
@@ -236,7 +237,7 @@
                 msg = url.startsWith('https://') ? url.slice(8, 22) : url.slice(7, 22);
 
                 if (ret) {
-                    $.notify(`<strong> ${msg}...${url.slice(-10)}을(를)<br>큐에 추가하였습니다.</strong>`, {
+                    $.notify(`<strong>${msg}...${url.slice(-10)}을(를)<br>큐에 추가하였습니다.</strong>`, {
                         type: 'success'
                     });
                 } else {
@@ -250,6 +251,14 @@
 
 
     $("body").on('click', '#search_btn', function(e) {
+
+        if (enable_searcher == "False") {
+            $.notify(`<strong>설정에서 검색기 옵션을 활성화하세요.</strong>`, {
+                type: 'warning'
+            });
+            return;
+        }
+
         e.preventDefault();
         document.getElementById("search_result_list").innerHTML = ''
 
@@ -305,5 +314,4 @@
         make_search_result(search_result);
     });
 </script>
-{% endblock %}
 {% endblock %}

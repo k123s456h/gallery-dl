@@ -59,6 +59,7 @@ class LogicGalleryDL:
 
         site = info_json['directory']['category']
         entity['category'] = site
+
         if site == 'hitomi':
           (entity['title'], entity['artist'], entity['parody'], entity['total_image_count']) = \
           (info_json_directory['title'], str(info_json_directory['artist[]']), str(info_json_directory['parody[]']), info_json_directory['count'])
@@ -78,13 +79,14 @@ class LogicGalleryDL:
           (entity['title'], entity['total_image_count']) = \
           (info_json_directory['manga'], info_json_directory['count'])
         else:
-          pass
+          entity['title'] = info_json_directory['title'] if 'title' in info_json_directory else info_json_directory['manga']
+          entity['count'] = info_json_directory['count'] if 'count' in info_json_directory else ''
         
         entity['status'] = '다운로드 중'
         LogicGalleryDL.update_ui(self, entity)
         # logger.debug("%s\n%s\n%s\n%s\n%s", entity['url'], entity['title'], entity['status'], entity['index'], entity['id'])
 
-        user_agent = UserAgent(cache=False).random
+        user_agent = UserAgent(verify_ssl=False).random
         index = 0
         try:
           commands = ['gallery-dl', url, 
@@ -159,7 +161,7 @@ class LogicGalleryDL:
             else:
               info_json[keyword_type][keyword_name].append(raw_info[idx][4:].strip().decode('utf-8'))
       
-      logger.debug("%s info: %s", url, info_json)
+      # logger.debug("%s info: %s", url, info_json)
       return [0, info_json]
     except Exception as e:
       logger.error('Exception:%s', e)
@@ -174,7 +176,7 @@ class LogicGalleryDL:
   
   @staticmethod
   def update(arg):
-      logger.debug('FOR update : %s' % arg)
+      # logger.debug('FOR update : %s' % arg)
       if arg['status'] == 'PROGRESS':
         entity = arg['result']['data']
         LogicGalleryDL.entity_update('queue_one', entity)
@@ -193,6 +195,8 @@ class LogicGalleryDL:
 
   @staticmethod
   def download(entity):
+      if entity['url'].strip() == '':
+        return False
       LogicGalleryDL.stop_flag = False
       try:
         if LogicGalleryDL.stop_flag == True:
@@ -201,9 +205,9 @@ class LogicGalleryDL:
         LogicGalleryDL.entity_update('queue_one', entity)
 
         if app.config['config']['use_celery']:
-          result = LogicGalleryDL.make_download.apply_async((entity,))
           #result.get()
           try:
+              result = LogicGalleryDL.make_download.apply_async((entity,))
               result.get(on_message=LogicGalleryDL.update, propagate=True)
           except:
               logger.debug('CELERY on_message not process.. start with no CELERY')
@@ -219,12 +223,15 @@ class LogicGalleryDL:
   @staticmethod
   def scheduler_function():
       from logic_queue import LogicQueue
-      logger.debug('gallery-dl scheduler downlist_normal Start')
+      logger.debug('gallery-dl scheduler normal Start')
       try:
           downlist = ModelSetting.get('downlist_normal')
           downlist = downlist.split('\n')
           for url in downlist:
-            LogicQueue.add_queue(url)
+            url = url.strip()
+            if len(url) > 0:
+              LogicQueue.add_queue(url)
+          
           import plugin
           plugin.send_queue_list()
       except Exception as e:

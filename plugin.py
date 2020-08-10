@@ -91,6 +91,7 @@ def first_menu(sub):
     elif sub == 'scheduler':
         arg = ModelSetting.to_dict()
         arg['package_name']  = package_name
+        arg['interval'] = str(int(arg['interval'])/60)
         return render_template('{package_name}_{sub}.html'.format(package_name=package_name, sub=sub), arg=arg)
     elif sub == 'request':
         arg = ModelSetting.to_dict()
@@ -127,7 +128,9 @@ def ajax(sub):
                 Logic.scheduler_stop()
             return jsonify(go)
         elif sub == 'one_execute':
-            ret = Logic.one_execute()
+            ret = {}
+            ret['normal'] = Logic.one_execute('normal')
+            ret['hitomi'] = Logic.one_execute('hitomi')
             return jsonify(ret)
         elif sub == 'reset_db':
             ret = Logic.reset_db()
@@ -202,6 +205,14 @@ def ajax(sub):
         elif sub == 'default_setting':
             logger.debug('restore default gallery-dl.conf...')
             Logic.restore_setting()
+            return jsonify(True)
+        elif sub == 'bypass':
+            logger.debug('bypass dpi script installing...')
+            Logic.bypass()
+            return jsonify(True)
+        elif sub == 'undo_bypass':
+            logger.debug('bypass dpi script uninstalling...')
+            Logic.undo_bypass()
             return jsonify(True)
     except Exception as e: 
         logger.error('Exception:%s', e)
