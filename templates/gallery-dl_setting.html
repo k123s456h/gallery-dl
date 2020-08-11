@@ -45,7 +45,8 @@
     });
 
     $("body").on('click', '#install_btn', function(e) {
-        $.get({
+        e.preventDefault();
+        $.post({
             url: '/' + package_name + '/ajax/install',
             success: function(data) {
                 command_modal_show('설치')
@@ -54,7 +55,8 @@
     });
 
     $("body").on('click', '#uninstall_btn', function(e) {
-        $.get({
+        e.preventDefault();
+        $.post({
             url: '/' + package_name + '/ajax/uninstall',
             success: function(data) {
                 command_modal_show('제거')
@@ -63,7 +65,8 @@
     });
 
     $("body").on('click', '#default_btn', function(e) {
-        $.get({
+        e.preventDefault();
+        $.post({
             url: '/' + package_name + '/ajax/default_setting',
             success: function(data) {
                 command_modal_show('복원')
@@ -72,7 +75,8 @@
     });
 
     $("body").on('click', '#bypass', function(e) {
-        $.get({
+        e.preventDefault();
+        $.post({
             url: '/' + package_name + '/ajax/bypass',
             success: function(data) {
                 command_modal_show('설치')
@@ -81,7 +85,8 @@
     });
 
     $("body").on('click', '#undo_bypass', function(e) {
-        $.get({
+        e.preventDefault();
+        $.post({
             url: '/' + package_name + '/ajax/undo_bypass',
             success: function(data) {
                 command_modal_show('제거')
