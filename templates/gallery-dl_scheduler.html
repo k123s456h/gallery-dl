@@ -130,7 +130,8 @@
     let package_name = "{{ arg['package_name'] }}";
 
     $("body").on('click', '#one_execute', function(e) {
-        $.get({
+        e.preventDefault();
+        $.post({
             url: '/' + package_name + '/ajax/one_execute',
             success: function(data) {
                 console.log("success: ", data)
