@@ -125,7 +125,7 @@ class ModelGalleryDlItem(db.Model):
     __bind_key__ = package_name
 
     id = db.Column(db.Integer, primary_key=True)
-    json = db.Column(db.JSON)
+    # json = db.Column(db.JSON)
     created_time = db.Column(db.DateTime)
 
     title = db.Column(db.String)
@@ -194,6 +194,15 @@ class ModelGalleryDlItem(db.Model):
                 return None
         except Exception as e:
             logger.error('Exception:%s %s', e, url)
+            logger.error(traceback.format_exc())
+
+    @staticmethod
+    def get_waiting_all():
+        try:
+            entity = db.session.query(ModelGalleryDlItem).filter( ~ModelGalleryDlItem.status.like(unicode('완료'))).all()
+            return entity
+        except Exception as e:
+            logger.error('Exception: %s', e)
             logger.error(traceback.format_exc())
 
     @staticmethod

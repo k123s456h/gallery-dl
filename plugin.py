@@ -28,7 +28,7 @@ from .model import ModelSetting
 from logic_queue import LogicQueue
 
 
-blueprint = Blueprint(package_name, package_name, url_prefix='/%s' %  package_name, template_folder=os.path.join(os.path.dirname(__file__), 'templates'), static_folder=os.path.join(os.path.dirname(__file__), 'kthoom'), static_url_path='kthoom')
+blueprint = Blueprint(package_name, package_name, url_prefix='/%s' %  package_name, template_folder=os.path.join(os.path.dirname(__file__), 'templates'))
 
 def plugin_load():
     Logic.plugin_load()
@@ -207,31 +207,6 @@ def ajax(sub):
         return jsonify('fail')   
 
     
-
-
-    
-#########################################################
-# kthroom
-#########################################################
-@blueprint.route('/code/<path:path>', methods=['GET', 'POST'])
-def kthroom(path):
-    return blueprint.send_static_file('code/' + path)
-
-@blueprint.route('/images/<path:path>', methods=['GET', 'POST'])
-def kthroom_images(path):
-    return blueprint.send_static_file('images/' + path)
-
-@blueprint.route('/examples/<path:path>', methods=['GET', 'POST'])
-def kthroom_examples(path):
-    return blueprint.send_static_file('examples/' + path)
-
-@blueprint.route('/dp/<path:path>', methods=['GET', 'POST'])
-def kthroom_dp(path):
-    tmp = path.split('/')
-    real_path = os.path.join(ModelSetting.get('dfolder'), tmp[0], tmp[1])
-    real_path = real_path.replace(path_app_root, '')[1:].replace('\\', '/')
-    logger.debug('load:%s', real_path)
-    return send_from_directory('', real_path)
 
 #########################################################
 # socketio

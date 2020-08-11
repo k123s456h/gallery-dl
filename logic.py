@@ -78,7 +78,13 @@ class Logic(object):
             # 편의를 위해 json 파일 생성
             from plugin import plugin_info
             Util.save_from_dict_to_json(plugin_info, os.path.join(os.path.dirname(__file__), 'info.json'))
+
             LogicQueue.queue_start()
+
+            # 대기중인 item 다운로드
+            entity_list = ModelGalleryDlItem.get_waiting_all()
+            for entity in entity_list:
+                LogicQueue.add_queue(entity.url)
 
             # hitomi 데이터 다운로드
             enable = ModelSetting.get_bool('enable_searcher')
@@ -96,6 +102,7 @@ class Logic(object):
                 if enable == True:
                     Logic.scheduler_start('data')
                     Logic.scheduler_start('hitomi') 
+
         except Exception as e:
             logger.error('Exception:%s', e)
             logger.error(traceback.format_exc())
@@ -342,7 +349,6 @@ class Logic(object):
         try:
             url = req.form['url']
             url = None if url == '' else url
-            from logic_queue import LogicQueue
             if url is not None:
                 LogicQueue.add_queue(url)
             else:
