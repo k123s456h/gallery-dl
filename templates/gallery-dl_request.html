@@ -277,7 +277,10 @@
         }
 
         if (outdated == "True") {
-            $.notify(`<strong>로컬 데이터가 최신이 아닙니다.<br>재시작하여 갱신하세요.<br>2-3분정도 소요됩니다.</strong>`, {
+            $.notify(`<strong>로컬 데이터가 최신이 아닙니다.<br>재시작하여 갱신하세요.<br></strong>`, {
+                type: 'warning'
+            });
+            $.notify(`<strong>혹은 데이터 다운로드 중입니다.<br>전체 다운로드에 3분정도 소요됩니다.</strong>`, {
                 type: 'warning'
             });
         }
