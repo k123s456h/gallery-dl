@@ -61,26 +61,7 @@
                     </div>
                 </div>
                 <div class="w-100"></div>
-                <div class="col-sm-9" style="left:10%">
-
-                    <div class="input-group col-3">
-
-                        <div class="toggle btn btn-primary" data-toggle="toggle" style="width: 61.0781px; height: 38px;"><input id="enable_thumbnail" name="enable_thumbnail" class="form-control form-control-sm" type="checkbox" data-toggle="toggle" checked="">
-                            <div class="toggle-group"><label class="btn btn-primary toggle-on">On</label><label class="btn btn-light toggle-off">Off</label><span class="toggle-handle btn btn-light"></span></div>
-                        </div>
-
-                    </div>
-
-
-                    <div style="padding-left:20px; padding-top:5px;">
-                        <em>
-
-                            On : 썸네일을 표시합니다.
-
-                        </em>
-                    </div>
-
-                </div>
+                {{ macros.setting_checkbox('enable_thumbnail', '', value='True', desc='On : 썸네일을 가립니다.') }}
                 <div class="w-100"></div>
                 <div class="col-4 align-self-end" style="left:10%;">
                     <button id="search_btn" class="btn btn-sm btn-outline-success">검색</button>
@@ -132,6 +113,8 @@
     const delta = 15
     const protocol = window.location.protocol;
     const socket = io.connect(protocol + "//" + document.domain + ":" + location.port + "/" + package_name);
+    const outdated = "{{ arg['outdated'] }}";
+    let hide = true;
     let static_index = delta;
     let result_length = 0;
     let search_result = [];
@@ -145,12 +128,25 @@
             search_result = data;
             result_length = search_result.length;
             make_search_result(search_result);
+            if (hide) {
+                $('.thumbnail').hide();
+            }
         });
 
         socket.on('hitomi_result_one', (data) => {
             search_result.push(data);
             result_length = search_result.length
             make_search_result(search_result);
+        });
+
+        $('#enable_thumbnail').change(function() {
+            if (this.checked) {
+                hide = true;
+                $('.thumbnail').hide();
+            } else {
+                hide = false;
+                $('.thumbnail').show();
+            }
         });
     })
 
@@ -172,7 +168,7 @@
         }
 
         $('.manual_download_btn').click(function() {
-            url = $(this)[0].value;
+            url = this.value;
             console.log(`added to queue: ${url}`);
             add_queue(url);
         });
@@ -207,7 +203,7 @@
         return str;
     }
 
-    function make_queue_one(data) { // TODO: 
+    function make_queue_one(data) {
         // console.log(data['id'], data['n'], data['url'], data['t'], data['type'], data['a'])
 
         id = data['id'] == undefined ? '' : data['id'].toString();
@@ -220,16 +216,13 @@
         artist = data['a'] == undefined ? '' : data['a'];
         group = data['g'] == undefined ? '' : data['g'];
         language = data['l'] == undefined ? '' : data['l'].toString();
-        thumbnail = document.getElementById('enable_thumbnail').checked ? data['thumbnail'] : '#';
-
-
-        img = `<img src=${thumbnail} class="img-fluid">`
+        thumbnail = data['thumbnail'];
 
         // tmp_r1 = m_row_start(padding=4)
         // tmp_r2 = m_row_start(padding=2)
 
         str = m_row_start()
-        str += m_col(3, img)
+        str += m_col(3, `<img src="${thumbnail}" class="thumbnail img-fluid">`)
         str += m_col(7, title)
         str += m_col(1, `<div class="col-1 align-self-end" style="left:40%;">
         <button value="${url}" class="manual_download_btn btn btn-sm btn-outline-success"> 다운로드 </button>
@@ -279,11 +272,18 @@
     $("body").on('click', '#search_btn', function(e) {
 
         if (enable_searcher == "False") {
-            $.notify(`<strong>설정에서 검색기 옵션을 활성화하세요.</strong>`, {
+            $.notify(`<strong>자동 탭에서 검색기 옵션을 활성화하세요.</strong>`, {
                 type: 'warning'
             });
             return;
         }
+
+        if (outdated == "True") {
+            $.notify(`<strong>로컬 데이터가 최신이 아닙니다.<br>재시작하여 갱신하세요.<br>2-3분정도 소요됩니다.</strong>`, {
+                type: 'warning'
+            });
+        }
+
 
         e.preventDefault();
         search_result = [];
@@ -339,90 +339,5 @@
         static_index > result_length ? static_index : static_index += delta;
         make_search_result(search_result);
     });
-
-
-
-    // https://ltn.hitomi.la/common.js
-
-    "use strict";
-
-    var adapose = false;
-    var loading_timer;
-    var domain = (/^dev\./.test(document.location.hostname.toString()) ? 'dev' : 'ltn') + '.hitomi.la';
-    var galleryblockextension = '.html';
-    var galleryblockdir = 'galleryblock';
-    var nozomiextension = '.nozomi';
-
-    function subdomain_from_galleryid(g, number_of_frontends) {
-        if (adapose) {
-            return '0';
-        }
-
-        var o = g % number_of_frontends;
-
-        return String.fromCharCode(97 + o);
-    }
-
-    function subdomain_from_url(url, base) {
-        var retval = 'a';
-        if (base) {
-            retval = base;
-        }
-
-        var number_of_frontends = 3;
-        var b = 16;
-
-        var r = /\/[0-9a-f]\/([0-9a-f]{2})\//;
-        var m = r.exec(url);
-        if (!m) {
-            return retval;
-        }
-
-        var g = parseInt(m[1], b);
-        if (!isNaN(g)) {
-            if (g < 0x30) {
-                number_of_frontends = 2;
-            }
-            if (g < 0x09) {
-                g = 1;
-            }
-            retval = subdomain_from_galleryid(g, number_of_frontends) + retval;
-        }
-
-        return retval;
-    }
-
-    function url_from_url(url, base) {
-        return url.replace(/\/\/..?\.hitomi\.la\//, '//' + subdomain_from_url(url, base) + '.hitomi.la/');
-    }
-
-
-    function full_path_from_hash(hash) {
-        if (hash.length < 3) {
-            return hash;
-        }
-        return hash.replace(/^.*(..)(.)$/, '$2/$1/' + hash);
-    }
-
-
-    function url_from_hash(galleryid, image, dir, ext) {
-        ext = ext || dir || image.name.split('.').pop();
-        dir = dir || 'images';
-
-        return 'https://a.hitomi.la/' + dir + '/' + full_path_from_hash(image.hash) + '.' + ext;
-    }
-
-    function url_from_url_from_hash(galleryid, image, dir, ext, base) {
-        return url_from_url(url_from_hash(galleryid, image, dir, ext), base);
-    }
-
-    function image_url_from_image(galleryid, image, no_webp) {
-        var webp;
-        if (image['hash'] && image['haswebp'] && !no_webp) {
-            webp = 'webp';
-        }
-
-        return url_from_url_from_hash(galleryid, image, webp);
-    }
 </script>
 {% endblock %}

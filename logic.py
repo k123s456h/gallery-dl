@@ -86,7 +86,9 @@ class Logic(object):
                 from datetime import datetime
                 before = ModelSetting.get('hitomi_last_time')
                 if (datetime.now() - datetime.strptime(before, '%Y-%m-%d %H:%M:%S')).days >= 1:
-                    LogicHitomi.download_json.apply_async()
+                    t = threading.Thread(target=LogicHitomi.download_json, args=())
+                    t.setDaemon(True)
+                    t.start()
             
             # 자동시작 옵션이 있으면 보통 여기서
             if ModelSetting.get_bool('auto_start'):

@@ -97,6 +97,9 @@ def first_menu(sub):
         arg = ModelSetting.to_dict()
         arg['package_name']  = package_name
         arg['is_installed'] = Logic.is_installed()  
+        from datetime import datetime
+        before = ModelSetting.get('hitomi_last_time')
+        arg['outdated'] = (datetime.now() - datetime.strptime(before, '%Y-%m-%d %H:%M:%S')).days >= 1
         return render_template('{package_name}_{sub}.html'.format(package_name=package_name, sub=sub), arg=arg)
     elif sub == 'queue':
         arg = ModelSetting.to_dict()
