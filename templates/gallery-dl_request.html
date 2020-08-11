@@ -14,8 +14,7 @@
 
     <div class='tab-content' , id='nav-tabContent'>
         {{ macros.m_tab_content_start('normal', true) }}
-        {{ macros.setting_input_text_and_buttons('url', 'url', [['download_btn', '다운로드']], 
-        value='https://www.mangahere.cc/manga/kaguya_sama_wa_kokurasetai_tensai_tachi_no_renai_zunousen/c195', desc='다운로드', col='6') }}
+        {{ macros.setting_input_text_and_buttons('url', 'url', [['download_btn', '다운로드']], value='', desc='다운로드', col='6') }}
         {{ macros.m_tab_content_end() }}
 
         {{ macros.m_tab_content_start('hitomi', false) }}
@@ -27,9 +26,7 @@
                 </div>
                 <div class="row">
                     <div class="col-sm-5 set-left"><strong>작가</strong></div>
-
                     <input id="artist" type="text" class="list-group-item form-control form-control-sm col-sm-6" style="padding: .25rem .5rem;" value="">
-
                 </div>
                 <div class="row">
                     <div class="col-sm-5 set-left"><strong>그룹</strong></div>

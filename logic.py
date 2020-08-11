@@ -234,8 +234,7 @@ class Logic(object):
     def install():
         try:
             def func():
-                #install_path = '/app/data/custom/gallery-dl/bin/install.sh'
-                install_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'bin/install.sh') # for develop
+                install_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'bin/install.sh')
                 os.chmod(install_path, 777)
 
                 import system
@@ -257,8 +256,7 @@ class Logic(object):
     def uninstall():
         try:
             def func():
-                #uninstall_path = '/app/data/custom/gallery-dl/bin/uninstall.sh'
-                uninstall_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'bin/uninstall.sh') # for develop
+                uninstall_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'bin/uninstall.sh')
                 os.chmod(uninstall_path, 777)
 
                 import system
