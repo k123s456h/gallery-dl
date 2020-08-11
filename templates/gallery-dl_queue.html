@@ -22,12 +22,13 @@
 
 
 <script type="text/javascript">
-    var package_name = 'gallery-dl';
-    var current_data = null;
+    const package_name = 'gallery-dl';
+    const protocol = window.location.protocol;
+    const socket = io.connect(protocol + "//" + document.domain + ":" + location.port + "/" + package_name);
+    let current_data = [];
+
 
     $(document).ready(function() {
-        var protocol = window.location.protocol;
-        socket = io.connect(protocol + "//" + document.domain + ":" + location.port + "/" + package_name);
 
         socket.on('queue_list', function(data) {
             on_queue_list(data);
@@ -72,8 +73,6 @@
     }
 
     function make_queue_one(data) {
-
-
         str = m_row_start();
 
         category = data['category']
@@ -101,16 +100,6 @@
         return str
     }
 
-    // $("body").on('click', '#toggle_btn', function(e){
-    //   e.preventDefault();
-    //   index = $(this).data("index")
-    //   if ($('#toggle_'+index+'_div').hasClass('collapse show') == false) {
-    //     $('#toggle_' + index + '_div').collapse('show')
-    //   } else {
-    //     $('#toggle_' + index + '_div').collapse('hide')
-    //   }
-    // });
-
     $("body").on('click', '#completed_remove_btn', function(e) {
         e.preventDefault();
         $.ajax({
@@ -134,15 +123,5 @@
             success: function(ret) {}
         });
     });
-
-    // $("body").on('click', '#all_show_btn', function(e){
-    //   e.preventDefault();
-    //   $("div[id^='toggle_']").collapse('show')
-    // });
-
-    // $("body").on('click', '#all_hide_btn', function(e){
-    //   e.preventDefault();
-    //   $("div[id^='toggle_']").collapse('hide')
-    // });
 </script>
 {% endblock %}

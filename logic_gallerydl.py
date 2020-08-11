@@ -101,6 +101,9 @@ class LogicGalleryDL:
         except Exception as e:
           logger.error('Exception:%s', e)
           logger.error(traceback.format_exc())
+          entity['status'] = '실패'
+          LogicGalleryDL.update_ui(self, entity)
+          return False
 
         entity['status'] = '완료'
         entity['index'] = int(entity['total_image_count'])
