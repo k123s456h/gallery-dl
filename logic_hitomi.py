@@ -49,6 +49,7 @@ class LogicHitomi:
   if not os.path.isdir(basepath):
     os.mkdir(basepath)
   
+  flag = True
 
   @staticmethod
   def get_response(url):
@@ -176,7 +177,6 @@ class LogicHitomi:
 
     return True
 
-
   @staticmethod
   def thumbnail_url(galleryid):
     # 'https://ltn.hitomi.la/galleries/1692965.js'
@@ -241,7 +241,7 @@ class LogicHitomi:
       return '#'
 
   @staticmethod
-  def find_gallery(condition, condition_negative, search=False):
+  def find_gallery(condition, condition_negative, search=False, scheduler=False):
     try:
       # condition: { key1:[val1], key2:[val2] }
       # key:
@@ -257,6 +257,9 @@ class LogicHitomi:
           json_item = json.loads(galleries.read())
 
           for idx, gallery in enumerate(json_item):
+            if LogicHitomi.flag == False and scheduler == False:
+              return ret
+            
             try:
               if LogicHitomi.is_satisfied(gallery, condition, condition_negative):
                 gallery['thumbnail'] = LogicHitomi.thumbnail_url(gallery['id'])
@@ -266,6 +269,9 @@ class LogicHitomi:
                 if search == True:
                   from .plugin import send_search_one
                   send_search_one(gallery)
+                if scheduler == True:
+                  from logic_queue import LogicQueue
+                  LogicQueue.add_queue(gallery['url'])
                 
                 ret.append(gallery)
             except Exception as e:
@@ -279,13 +285,6 @@ class LogicHitomi:
       logger.error('Exception:%s', e)
       logger.error(traceback.format_exc())
 
-  @staticmethod
-  def return_url(condition, condition_negative):
-    urls = []
-    galleries = LogicHitomi.find_gallery(condition, condition_negative)
-    for gallery in galleries:
-      urls.append(gallery['url'])
-    return urls
 
   @staticmethod
   def list_to_dict(condition_list):
@@ -318,6 +317,7 @@ class LogicHitomi:
 
   @staticmethod
   def search(arg):
+    LogicHitomi.flag = True
     try:
       condition = {}
       condition['n'] = arg['n'].split('||')
@@ -338,9 +338,9 @@ class LogicHitomi:
       condition_negative['l'] = ModelSetting.get('b_language').split('||')
 
       def func(condition_positive, condition_negative):
-        ret = LogicHitomi.find_gallery(condition, condition_negative, search=False)
-        from .plugin import send_search_result
-        send_search_result(ret)
+        ret = LogicHitomi.find_gallery(condition, condition_negative, search=True)
+        # from .plugin import send_search_result
+        # send_search_result(ret)
 
       t = threading.Thread(target=func, args=(condition, condition_negative))
       t.setDaemon(True)
@@ -353,7 +353,6 @@ class LogicHitomi:
 
   @staticmethod
   def scheduler_function():
-      from logic_queue import LogicQueue
       logger.debug('gallery-dl scheduler hitomi Start')
       try:
         condition_positive = {}
@@ -376,10 +375,7 @@ class LogicHitomi:
         condition_negative['l'] = ModelSetting.get('b_language').split('||')
 
         def func(condition_positive, condition_negative):
-          urls = LogicHitomi.return_url(condition_positive, condition_negative)
-          for url in urls:
-            # logger.debug('added by scheduler: %s', url)
-            LogicQueue.add_queue(url)
+          LogicHitomi.find_gallery(condition_positive, condition_negative, scheduler=True)
 
         t = threading.Thread(target=func, args=(condition_positive, condition_negative))
         t.setDaemon(True)

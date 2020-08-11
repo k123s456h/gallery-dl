@@ -128,9 +128,6 @@
             search_result = data;
             result_length = search_result.length;
             make_search_result(search_result);
-            if (hide) {
-                $('.thumbnail').hide();
-            }
         });
 
         socket.on('hitomi_result_one', (data) => {
@@ -140,12 +137,17 @@
         });
 
         $('#enable_thumbnail').change(function() {
+            let list = $('.thumbnail');
             if (this.checked) {
+                console.log('on');
                 hide = true;
-                $('.thumbnail').hide();
+                list.attr('src', '#')
             } else {
+                console.log('off');
                 hide = false;
-                $('.thumbnail').show();
+                for (let i = 0; i < list.length; i++) {
+                    list[i].src = list[i].getAttribute('data');
+                }
             }
         });
     })
@@ -216,13 +218,12 @@
         artist = data['a'] == undefined ? '' : data['a'];
         group = data['g'] == undefined ? '' : data['g'];
         language = data['l'] == undefined ? '' : data['l'].toString();
-        thumbnail = data['thumbnail'];
+        thumbnail = hide ? '#' : data['thumbnail'];
 
         // tmp_r1 = m_row_start(padding=4)
         // tmp_r2 = m_row_start(padding=2)
-
         str = m_row_start()
-        str += m_col(3, `<img src="${thumbnail}" class="thumbnail img-fluid">`)
+        str += m_col(3, `<a href="${url}"><img src="${thumbnail}" data="${data['thumbnail']}" class="thumbnail img-fluid"/></a>`)
         str += m_col(7, title)
         str += m_col(1, `<div class="col-1 align-self-end" style="left:40%;">
         <button value="${url}" class="manual_download_btn btn btn-sm btn-outline-success"> 다운로드 </button>

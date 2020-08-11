@@ -94,6 +94,7 @@ class Logic(object):
             if ModelSetting.get_bool('auto_start'):
                 Logic.scheduler_start('normal')
                 if enable == True:
+                    Logic.scheduler_start('data')
                     Logic.scheduler_start('hitomi') 
         except Exception as e:
             logger.error('Exception:%s', e)
@@ -139,6 +140,13 @@ class Logic(object):
                 LogicGalleryDL.scheduler_function()
             elif sub == 'hitomi':
                 LogicHitomi.scheduler_function()
+            elif sub == 'data':
+                from datetime import datetime
+                before = ModelSetting.get('hitomi_last_time')
+                if (datetime.now() - datetime.strptime(before, '%Y-%m-%d %H:%M:%S')).days >= 1:
+                    t = threading.Thread(target=LogicHitomi.download_json, args=())
+                    t.setDaemon(True)
+                    t.start()
         except Exception as e:
             logger.error('Exception:%s', e)
             logger.error(traceback.format_exc())

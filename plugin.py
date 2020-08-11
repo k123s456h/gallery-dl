@@ -62,13 +62,19 @@ menu = {
 #########################################################
 # WEB Menu
 #########################################################
+from .logic_hitomi import LogicHitomi
+
 @blueprint.route('/')
 def home():
+    LogicHitomi.flag = False
     return redirect('/%s/setting' % package_name)
     
 @blueprint.route('/<sub>')
 @login_required
 def first_menu(sub): 
+    if sub != 'request':
+        LogicHitomi.flag = False
+
     if sub == 'setting':
         arg = ModelSetting.to_dict()
         arg['package_name']  = package_name
@@ -175,20 +181,6 @@ def ajax(sub):
             except Exception as e: 
                 logger.error('Exception:%s', e)
                 logger.error(traceback.format_exc())
-        # elif sub == 'list_all_download':
-        #     try:
-        #         ret = Logic.list_all_download(request)
-        #         return jsonify(ret)
-        #     except Exception as e: 
-        #         logger.error('Exception:%s', e)
-        #         logger.error(traceback.format_exc())
-        # elif sub == 'list_add_blacklist':
-        #     try:
-        #         ret = Logic.list_add_blacklist(request)
-        #         return jsonify(ret)
-        #     except Exception as e: 
-        #         logger.error('Exception:%s', e)
-        #         logger.error(traceback.format_exc())
         elif sub == 'install':
             logger.debug('gallery-dl installing...')
             Logic.install()
