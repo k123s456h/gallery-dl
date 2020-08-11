@@ -219,8 +219,6 @@ class ModelGalleryDlItem(db.Model):
             else:
                 if entity.status == '완료':
                     return None
-                else:
-                    return entity.as_dict()
             return entity.as_dict()
         except Exception as e:
             logger.error('Exception:%s', e)

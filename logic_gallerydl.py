@@ -31,7 +31,6 @@ from fake_useragent import UserAgent
 #########################################################
 
 class LogicGalleryDL:
-  stop_flag = False
 
   @staticmethod
   @celery.task(bind=True)
@@ -197,11 +196,8 @@ class LogicGalleryDL:
   def download(entity):
       if entity['url'].strip() == '':
         return False
-      LogicGalleryDL.stop_flag = False
-      try:
-        if LogicGalleryDL.stop_flag == True:
-          return
 
+      try:
         LogicGalleryDL.entity_update('queue_one', entity)
 
         if app.config['config']['use_celery']:
