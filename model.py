@@ -216,9 +216,6 @@ class ModelGalleryDlItem(db.Model):
                 entity.status = u'대기'
                 db.session.add(entity)
                 db.session.commit()
-            else:
-                if entity.status == '완료':
-                    return None
             return entity.as_dict()
         except Exception as e:
             logger.error('Exception:%s', e)

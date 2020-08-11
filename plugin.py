@@ -106,6 +106,7 @@ def first_menu(sub):
         from datetime import datetime
         before = ModelSetting.get('hitomi_last_time')
         arg['outdated'] = (datetime.now() - datetime.strptime(before, '%Y-%m-%d %H:%M:%S')).days >= 1
+        arg['is_downloading'] = scheduler.is_running('gallery-dl_data')
         return render_template('{package_name}_{sub}.html'.format(package_name=package_name, sub=sub), arg=arg)
     elif sub == 'queue':
         arg = ModelSetting.to_dict()

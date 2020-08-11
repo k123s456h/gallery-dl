@@ -51,14 +51,15 @@ class LogicQueue(object):
                 entity = LogicQueue.download_queue.get()
                 logger.debug('Queue receive item: %s', entity['url'])
 
-                # if entity['status'] == '완료':
-                #     entity['status'] = '중복'
-                #     entity['index'] = int(entity['total_image_count'])
-                #     LogicGalleryDL.entity_update('queue_one', entity)
-                # else:
-                #     LogicGalleryDL.download(entity)
-                LogicGalleryDL.download(entity)
-                LogicQueue.download_queue.task_done()    
+                if entity['status'] == '완료':
+                    entity['status'] = '중복'
+                    entity['index'] = int(entity['total_image_count'])
+                    LogicGalleryDL.entity_update('queue_one', entity)
+                else:
+                    LogicGalleryDL.download(entity)
+
+                #LogicGalleryDL.download(entity)
+                #LogicQueue.download_queue.task_done()    
             except Exception as e: 
                 logger.error('Exception:%s', e)
                 logger.error(traceback.format_exc())
