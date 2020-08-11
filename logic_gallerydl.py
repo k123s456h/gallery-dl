@@ -97,7 +97,7 @@ class LogicGalleryDL:
             index += 1
             entity['index'] = index
             LogicGalleryDL.update_ui(self, entity)
-            logger.debug("gallery-dl: line: %s", line)
+            logger.debug("gallery-dl: %s", line[:-1])
         except Exception as e:
           logger.error('Exception:%s', e)
           logger.error(traceback.format_exc())
@@ -178,7 +178,7 @@ class LogicGalleryDL:
   
   @staticmethod
   def update(arg):
-      # logger.debug('FOR update : %s' % arg)
+      logger.debug('gallery-dl: FOR update : %s' % arg)
       if arg['status'] == 'PROGRESS':
         entity = arg['result']['data']
         LogicGalleryDL.entity_update('queue_one', entity)
