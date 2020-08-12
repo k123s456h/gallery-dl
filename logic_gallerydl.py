@@ -33,12 +33,11 @@ from fake_useragent import UserAgent
 class LogicGalleryDL:
 
   @staticmethod
-  @celery.task(bind=True)
-  def make_download(self, entity):
+  def make_download(entity):
     try:
       entity['status'] = '메타데이터 수집 중'
       entity['index'] = 0
-      LogicGalleryDL.update_ui(self, entity)
+      LogicGalleryDL.update_ui(entity)
 
       url = entity['url']
       [return_code, info_json] = LogicGalleryDL.get_info_json(url)
@@ -50,7 +49,7 @@ class LogicGalleryDL:
         else:
           entity['status'] = '실패'
 
-        LogicGalleryDL.update_ui(self, entity)
+        LogicGalleryDL.update_ui(entity)
         return False
       else:
         info_json_directory = info_json['directory']
@@ -82,7 +81,7 @@ class LogicGalleryDL:
           entity['count'] = info_json_directory['count'] if 'count' in info_json_directory else ''
         
         entity['status'] = '다운로드 중'
-        LogicGalleryDL.update_ui(self, entity)
+        LogicGalleryDL.update_ui(entity)
         # logger.debug("%s\n%s\n%s\n%s\n%s", entity['url'], entity['title'], entity['status'], entity['index'], entity['id'])
 
         user_agent = UserAgent(verify_ssl=False).random
@@ -96,18 +95,18 @@ class LogicGalleryDL:
           for line in iter(proc.stdout.readline, b''):
             index += 1
             entity['index'] = index
-            LogicGalleryDL.update_ui(self, entity)
+            LogicGalleryDL.update_ui(entity)
             logger.debug("gallery-dl: %s", line[:-1])
         except Exception as e:
           logger.error('Exception:%s', e)
           logger.error(traceback.format_exc())
           entity['status'] = '실패'
-          LogicGalleryDL.update_ui(self, entity)
+          LogicGalleryDL.update_ui(entity)
           return False
 
         entity['status'] = '완료'
         entity['index'] = int(entity['total_image_count'])
-        LogicGalleryDL.update_ui(self, entity)
+        LogicGalleryDL.update_ui(entity)
         ModelGalleryDlItem.save_as_dict(entity)
         return True
     except Exception as e: 
@@ -175,26 +174,13 @@ class LogicGalleryDL:
       import plugin
       plugin.socketio_callback(cmd, entity, encoding=False)
   
-  @staticmethod
-  def update(arg):
-      # logger.debug('gallery-dl: FOR update : %s' % arg)
-      if arg['status'] == 'PROGRESS':
-        entity = arg['result']['data']
-        LogicGalleryDL.entity_update('queue_one', entity)
-        from .logic_queue import LogicQueue
-        for idx, e in enumerate(LogicQueue.entity_list):
-          if e['url'] == entity['url']:
-              LogicQueue.entity_list[idx] = entity
-              break
 
   @staticmethod
-  def update_ui(celery_is, entity):
+  def update_ui(entity):
     from plugin import send_queue_list
     send_queue_list()
-    try:
-        celery_is.update_state(state='PROGRESS', meta={'data':entity})
-    except:
-        LogicGalleryDL.entity_update('queue_one', entity)
+    LogicGalleryDL.entity_update('queue_one', entity)
+        
 
 
   @staticmethod
