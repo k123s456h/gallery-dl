@@ -60,7 +60,7 @@ class LogicQueue(object):
                         result = LogicGalleryDL.make_download.apply_async((entity,))
                         result.get(on_message=LogicGalleryDL.update, propagate=True)
                     else:
-                        LogicGalleryDL.make_download(None, entity)
+                        LogicGalleryDL.make_download(entity)
                     
                     #LogicGalleryDL.download(entity)
                 #LogicGalleryDL.download(entity)
