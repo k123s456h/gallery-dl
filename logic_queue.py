@@ -25,7 +25,7 @@ from .logic_gallerydl import LogicGalleryDL
 
 #########################################################
 
-SIZE = cpu_count()/2 if cpu_count() > 1 else cpu_count()
+SIZE = int(cpu_count()/2) if cpu_count() > 1 else cpu_count()
 
 class LogicQueue(object):
     static_index = 0
