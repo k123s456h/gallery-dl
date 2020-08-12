@@ -129,14 +129,22 @@
 <script type="text/javascript">
     let package_name = "{{ arg['package_name'] }}";
 
+    function callback(cb) {
+        cb();
+    }
+
     $("body").on('click', '#one_execute', function(e) {
         e.preventDefault();
-        $.post({
-            url: '/' + package_name + '/ajax/one_execute',
-            success: function(data) {
-                console.log("success: ", data)
-            }
-        });
+        document.getElementById('global_setting_save_btn').click();
+        callback(function() {
+            $.post({
+                url: '/' + package_name + '/ajax/one_execute',
+                success: function(data) {
+                    console.log("success: ", data)
+                }
+            });
+        })
+
         window.location.href = '/' + package_name + '/queue'
     });
 
