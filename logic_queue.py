@@ -11,7 +11,7 @@ import json
 # third-party
 
 # sjva 공용
-from framework import db, scheduler, path_data
+from framework import db, scheduler, path_data, celery, app
 from framework.job import Job
 from framework.util import Util
 
@@ -56,8 +56,13 @@ class LogicQueue(object):
                     entity['index'] = int(entity['total_image_count'])
                     LogicGalleryDL.entity_update('queue_one', entity)
                 else:
-                    LogicGalleryDL.download(entity)
-
+                    if app.config['config']['use_celery']:
+                        result = LogicGalleryDL.make_download.apply_async((entity,))
+                        result.get(on_message=LogicGalleryDL.update, propagate=True)
+                    else:
+                        LogicGalleryDL.make_download(None, entity)
+                    
+                    #LogicGalleryDL.download(entity)
                 #LogicGalleryDL.download(entity)
                 #LogicQueue.download_queue.task_done()    
             except Exception as e: 
@@ -104,6 +109,22 @@ class LogicQueue(object):
             import plugin
             plugin.send_queue_list()
             #LogicMD.stop()
+        except Exception as e:
+            logger.error('Exception:%s', e)
+            logger.error(traceback.format_exc())
+
+    @staticmethod
+    def restart_uncompleted():
+        try:
+            new_list = []
+            failed_list = []
+            for e in LogicQueue.entity_list:
+                if e['status'] not in ['실패: url', '실패: 차단된 사이트', '실패']:
+                    new_list.append(e)
+                else:
+                    failed_list.append(e)
+            for e in failed_list:
+                LogicQueue.download_queue.put(e)
         except Exception as e:
             logger.error('Exception:%s', e)
             logger.error(traceback.format_exc())

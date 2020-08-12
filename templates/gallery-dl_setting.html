@@ -24,7 +24,7 @@
             {{ macros.m_tab_content_start('options', false) }}
             <!-- --option -->
             {{ macros.setting_button([['default_btn', '기본 설정으로 복원']], '', '/app/data/custom/gallery-dl/bin/gallery-dl-default.conf' ) }}
-            {{ macros.setting_input_textarea('gallery-dl_option_value', '/etc/gallery-dl.conf 설정', value=arg['gallery-dl_option_value'], col='20', row='30', desc=['참고: https://github.com/mikf/gallery-dl/blob/master/docs/gallery-dl-example.conf', '위치: /app/data/custom/gallery-dl/gallery-dl.conf']) }}
+            {{ macros.setting_input_textarea('gallery-dl_option_value', 'gallery-dl.conf 설정', value=arg['gallery-dl_option_value'], col='20', row='30', desc=['참고: https://github.com/mikf/gallery-dl/blob/master/docs/gallery-dl-example.conf', '위치: /app/data/custom/gallery-dl/gallery-dl.conf']) }}
             {{ macros.m_tab_content_end() }}
         </div>
         <!--tab-content-->

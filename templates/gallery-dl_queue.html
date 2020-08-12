@@ -2,7 +2,7 @@
 {% block content %}
 
 <div>
-    {{ macros.m_button_group([['reset_queue_btn', '초기화'], ['completed_remove_btn', '완료된 항목 삭제']])}}
+    {{ macros.m_button_group([['reset_queue_btn', '초기화'], ['completed_remove_btn', '완료된 항목 삭제'], ['restart_uncompleted', '실패한 항목 재시작']])}}
     {{ macros.m_row_start('0') }}
     {{ macros.m_row_end() }}
 
@@ -123,5 +123,15 @@
             success: function(ret) {}
         });
     });
+
+    $('body').on('click', '#restart_uncompleted', (e) => {
+        e.preventDefault();
+        $.post(
+            `/${package_name}/ajax/restart_uncompleted`,
+            (data, status) => {
+
+            }
+        )
+    })
 </script>
 {% endblock %}

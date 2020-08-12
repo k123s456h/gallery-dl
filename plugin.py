@@ -168,6 +168,14 @@ def ajax(sub):
             except Exception as e: 
                 logger.error('Exception:%s', e)
                 logger.error(traceback.format_exc())
+        elif sub == 'restart_uncompleted':
+            try:
+                from logic_queue import LogicQueue
+                ret = LogicQueue.restart_uncompleted()
+                return jsonify(ret)
+            except Exception as e:
+                logger.error('Exception:%s', e)
+                logger.error(traceback.format_exc())
         elif sub == 'item_list':
             try:
                 ret = Logic.item_list(request)

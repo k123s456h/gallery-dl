@@ -166,10 +166,9 @@ class LogicGalleryDL:
       # logger.debug("%s info: %s", url, info_json)
       return [0, info_json]
     except Exception as e:
-      logger.error('Exception:%s', e)
+      logger.error('Exception at: %s', url)
       logger.error(traceback.format_exc())
-      logger.error('Exception: gallery-dl output: %s', raw_info)
-      return [-1, raw_info]
+      return [-1, str(e)]
 
   @staticmethod
   def entity_update(cmd, entity):
@@ -178,7 +177,7 @@ class LogicGalleryDL:
   
   @staticmethod
   def update(arg):
-      logger.debug('gallery-dl: FOR update : %s' % arg)
+      # logger.debug('gallery-dl: FOR update : %s' % arg)
       if arg['status'] == 'PROGRESS':
         entity = arg['result']['data']
         LogicGalleryDL.entity_update('queue_one', entity)
@@ -190,36 +189,13 @@ class LogicGalleryDL:
 
   @staticmethod
   def update_ui(celery_is, entity):
+    from plugin import send_queue_list
+    send_queue_list()
     try:
         celery_is.update_state(state='PROGRESS', meta={'data':entity})
     except:
         LogicGalleryDL.entity_update('queue_one', entity)
 
-  @staticmethod
-  def download(entity):
-      if entity['url'].strip() == '':
-        return False
-
-      try:
-        LogicGalleryDL.entity_update('queue_one', entity)
-
-        if app.config['config']['use_celery']:
-          #result.get()
-          try:
-              result = LogicGalleryDL.make_download.apply_async((entity,))
-              result.get(on_message=LogicGalleryDL.update, propagate=True)
-          except Exception as e:
-              logger.error('Exception:%s', e)
-              logger.error(traceback.format_exc())
-              logger.debug('CELERY on_message not process.. start with no CELERY')
-              LogicGalleryDL.make_download(None, entity)
-              LogicGalleryDL.entity_update('queue_one', entity)
-        else:
-          LogicGalleryDL.make_download(None, entity)
-          LogicGalleryDL.entity_update('queue_one', entity)
-      except Exception as e: 
-              logger.error('Exception:%s', e)
-              logger.error(traceback.format_exc())
 
   @staticmethod
   def scheduler_function():
@@ -238,3 +214,17 @@ class LogicGalleryDL:
       except Exception as e:
           logger.error('Exception:%s', e)
           logger.error(traceback.format_exc())
+
+
+''' test cases
+https://www.mangahere.cc/manga/mahoroba_kissa/c019
+https://www.mangahere.cc/manga/mahoroba_kissa/c018
+https://www.mangahere.cc/manga/mahoroba_kissa/c017
+https://www.mangahere.cc/manga/mahoroba_kissa/c016
+https://www.mangahere.cc/manga/mahoroba_kissa/c015
+https://www.mangahere.cc/manga/mahoroba_kissa/c014
+https://www.mangahere.cc/manga/mahoroba_kissa/c013
+https://www.mangahere.cc/manga/mahoroba_kissa/c012
+https://www.mangahere.cc/manga/mahoroba_kissa/c011
+https://www.mangahere.cc/manga/mahoroba_kissa/c010
+'''

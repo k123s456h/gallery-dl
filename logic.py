@@ -345,12 +345,13 @@ class Logic(object):
     @staticmethod
     def download_by_request(req):
         try:
-            url = req.form['url']
-            url = None if url == '' else url
-            if url is not None:
+            raw_url = req.form['url']
+            raw_url = raw_url.replace(',', ' ').strip()           
+            url_list = raw_url.split()
+
+            for url in url_list:
                 LogicQueue.add_queue(url)
-            else:
-                return False
+
             return True
         except Exception as e:
             logger.error('Exception:%s', e)
@@ -405,39 +406,4 @@ class Logic(object):
             logger.error('Exception:%s', e)
             logger.error(traceback.format_exc())
             return False
-
-    # @staticmethod
-    # def list_all_download(req):
-    #     try:
-    #         db_id = int(req.form['id'])
-    #         item = db.session.query(ModelGalleryDlItem).filter(ModelGalleryDlItem.id == db_id).first()
-    #         if item is not None:
-    #             LogicQueue.add_queue_manga(item.manga_id, False, None)
-    #             return True
-    #         return False
-    #     except Exception, e:
-    #         logger.error('Exception:%s', e)
-    #         logger.error(traceback.format_exc())
-    #         return False
-
-    # @staticmethod
-    # def list_add_blacklist(req):
-    #     try:
-    #         db_id = int(req.form['id'])
-    #         item = db.session.query(ModelGalleryDlItem).filter(ModelGalleryDlItem.id == db_id).first()
-    #         if item is not None:
-    #             from .logic_normal import LogicNormal
-    #             tmp = LogicNormal.titlereplace(item.main_title)
-    #             entity = db.session.query(ModelSetting).filter_by(key='blacklist').with_for_update().first()
-    #             if entity.value.strip() == '':
-    #                 entity.value = tmp
-    #             else:
-    #                 entity.value = entity.value + '|' + tmp
-    #             db.session.commit()
-    #             return True
-    #         return False
-    #     except Exception, e:
-    #         logger.error('Exception:%s', e)
-    #         logger.error(traceback.format_exc())
-    #         return False
 
