@@ -14,7 +14,8 @@
         <div class="tab-content" id="nav-tabContent">
             {{ macros.m_tab_content_start('normal', true) }}
             {{ macros.setting_button([['install_btn', '설치/업데이트'], ['uninstall_btn', '삭제']], 'gallery-dl', '현재 버전: ' + arg['current_version'] ) }}
-            {{ macros.setting_button([['bypass', '우회'], ['undo_bypass' ,'복원']], 'bypass', '차단된 사이트를 우회합니다. docker버전에서만 가능합니다. sjva전체에 적용됩니다.' ) }}
+            {{ macros.setting_checkbox('bypass', '우회', value=arg['bypass'], desc='On : 차단된 사이트를 우회합니다. docker버전에서만 가능합니다. sjva전체에 적용됩니다.') }}
+            <!-- {{ macros.setting_button([['bypass', '우회'], ['undo_bypass' ,'복원']], 'bypass', '차단된 사이트를 우회합니다. docker버전에서만 가능합니다. sjva전체에 적용됩니다.' ) }} -->
             {{ macros.m_hr()}}
             {{ macros.info_text_go('github-gallery-dl', '원작자 repo', 'https://github.com/mikf/gallery-dl') }}
             {{ macros.info_text_go('github-gallery-dl', '', 'https://github.com/KurtBestor/Hitomi-Downloader') }}
@@ -39,9 +40,9 @@
     console.log(package_name, is_installed, current_version)
 
     $(document).ready(function() {
-        $('[id^=gallery-dl]').each(function(index) {
-            use_collapse(this.id)
-        });
+        // $('[id^=gallery-dl]').each(function(index) {
+        //     use_collapse(this.id)
+        // });
     });
 
     $("body").on('click', '#install_btn', function(e) {
@@ -74,28 +75,25 @@
         });
     });
 
-    $("body").on('click', '#bypass', function(e) {
+    $('#bypass').change((e) => {
+        let checked = document.getElementById('bypass').checked;
         e.preventDefault();
-        $.post({
-            url: '/' + package_name + '/ajax/bypass',
-            success: function(data) {
-                command_modal_show('설치')
-            }
-        });
-    });
-
-    $("body").on('click', '#undo_bypass', function(e) {
-        e.preventDefault();
-        $.post({
-            url: '/' + package_name + '/ajax/undo_bypass',
-            success: function(data) {
-                command_modal_show('제거')
-            }
-        });
-    });
-
-    $('[id^=gallery-dl]').change(function() {
-        use_collapse(this.id);
+        if (checked) {
+            $.post({
+                url: '/' + package_name + '/ajax/bypass',
+                success: function(data) {
+                    command_modal_show('설치')
+                }
+            });
+        } else {
+            $.post({
+                url: '/' + package_name + '/ajax/undo_bypass',
+                success: function(data) {
+                    command_modal_show('제거')
+                }
+            });
+        }
+        document.getElementById('global_setting_save_btn').click();
     });
 </script>
 {% endblock %}

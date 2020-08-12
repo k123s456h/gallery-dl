@@ -32,6 +32,7 @@ class Logic(object):
         'auto_start': 'False',
         'interval': '1440',
         'enable_searcher': 'False',
+        'bypass': 'False',
 
         'downlist_normal': '',
 
@@ -75,6 +76,12 @@ class Logic(object):
             logger.debug('%s plugin_load', package_name)
             # DB 초기화
             Logic.db_init()       
+            
+            # bypass
+            bypass = ModelSetting.get_bool('bypass')
+            if bypass == True:
+                Logic.bypass()
+
             # 편의를 위해 json 파일 생성
             from plugin import plugin_info
             Util.save_from_dict_to_json(plugin_info, os.path.join(os.path.dirname(__file__), 'info.json'))
