@@ -82,6 +82,11 @@ class Logic(object):
             if bypass == True:
                 Logic.bypass()
 
+            # gallery-dl conf
+            conf_path = os.path.join(os.path.dirname(__file__), 'gallery-dl.conf')
+            if not os.path.isfile(conf_path):
+                Logic.restore_setting()
+
             # 편의를 위해 json 파일 생성
             from plugin import plugin_info
             Util.save_from_dict_to_json(plugin_info, os.path.join(os.path.dirname(__file__), 'info.json'))
