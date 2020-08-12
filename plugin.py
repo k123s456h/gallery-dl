@@ -129,12 +129,20 @@ def ajax(sub):
             ret = ModelSetting.setting_save(request)
             return jsonify(ret)
         elif sub == 'scheduler':
+            enable = ModelSetting.get_bool('enable_searcher')
             go = request.form['scheduler']
             logger.debug('scheduler :%s', go)
             if go == 'true':
-                Logic.scheduler_start()
+                Logic.scheduler_start('normal')
+                if enable == True:
+                    Logic.scheduler_start('data')
+                    Logic.scheduler_start('hitomi')
+
             else:
-                Logic.scheduler_stop()
+                Logic.scheduler_stop('normal')
+                Logic.scheduler_stop('data')
+                Logic.scheduler_stop('hitomi')
+
             return jsonify(go)
         elif sub == 'one_execute':
             ret = {}
