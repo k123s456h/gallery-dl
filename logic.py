@@ -196,6 +196,19 @@ class Logic(object):
             ret = 'fail'
         return ret
 
+    @staticmethod
+    def schedule_running():
+        try:
+            job_id_list= ['gallery-dl_normal', 'gallery-dl_data', 'gallery-dl_hitomi']
+            for job_id in job_id_list:
+                if scheduler.is_include(job_id):
+                    if scheduler.is_running(job_id):
+                        return True
+            return False
+        except Exception as e: 
+            logger.error('Exception:%s', e)
+            logger.error(traceback.format_exc())
+            ret = 'fail'
 
     @staticmethod
     def reset_db():

@@ -97,6 +97,7 @@ def first_menu(sub):
         arg = ModelSetting.to_dict()
         arg['package_name']  = package_name
         arg['interval'] = str(int(arg['interval'])/60)
+        arg['global_scheduler'] = Logic.schedule_running()
         return render_template('{package_name}_{sub}.html'.format(package_name=package_name, sub=sub), arg=arg)
     elif sub == 'request':
         arg = ModelSetting.to_dict()
@@ -137,7 +138,6 @@ def ajax(sub):
                 if enable == True:
                     Logic.scheduler_start('data')
                     Logic.scheduler_start('hitomi')
-
             else:
                 Logic.scheduler_stop('normal')
                 Logic.scheduler_stop('data')
