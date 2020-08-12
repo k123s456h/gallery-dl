@@ -74,6 +74,11 @@ class Logic(object):
     def plugin_load():
         try:
             logger.debug('%s plugin_load', package_name)
+            # gallery-dl conf
+            if not os.path.isfile(os.path.join(os.path.dirname(__file__), 'gallery-dl.conf')):
+                logger.debug("[gallery-dl] No config file found. Restoring default config...")
+                Logic.restore_setting()
+                
             # DB 초기화
             Logic.db_init()       
             
@@ -82,11 +87,6 @@ class Logic(object):
             if bypass == True:
                 logger.debug("[gallery-dl] bypass dpi installing...")
                 Logic.bypass()
-            
-            # gallery-dl conf
-            if not os.path.isfile(os.path.join(os.path.dirname(__file__), 'gallery-dl.conf')):
-                logger.debug("[gallery-dl] No config file found. Restoring default config...")
-                Logic.restore_setting()
 
             # 편의를 위해 json 파일 생성
             from plugin import plugin_info
