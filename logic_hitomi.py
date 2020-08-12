@@ -264,7 +264,7 @@ class LogicHitomi:
               if LogicHitomi.is_satisfied(gallery, condition, condition_negative):
                 gallery['thumbnail'] = LogicHitomi.thumbnail_url(gallery['id'])
                 gallery['url'] = LogicHitomi.baseurl + str(gallery['id']) + '.html'
-                logger.debug('found item: %s', gallery['id'])
+                logger.debug('[gallery-dl] found item: %s', gallery['id'])
 
                 if search == True:
                   from .plugin import send_search_one
