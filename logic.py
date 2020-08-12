@@ -80,11 +80,12 @@ class Logic(object):
             # bypass
             bypass = ModelSetting.get_bool('bypass')
             if bypass == True:
+                logger.debug("[gallery-dl] bypass dpi installing...")
                 Logic.bypass()
-
+            
             # gallery-dl conf
-            conf_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'gallery-dl.conf')
-            if not os.path.isfile(conf_path):
+            if not os.path.isfile(os.path.join(os.path.dirname(__file__), 'gallery-dl.conf')):
+                logger.debug("[gallery-dl] No config file found. Restoring default config...")
                 Logic.restore_setting()
 
             # 편의를 위해 json 파일 생성

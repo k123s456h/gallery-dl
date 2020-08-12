@@ -32,7 +32,6 @@ blueprint = Blueprint(package_name, package_name, url_prefix='/%s' %  package_na
 
 def plugin_load():
     Logic.plugin_load()
-#    LogicQueue.queue_start()
 
 def plugin_unload():
     Logic.plugin_unload()
