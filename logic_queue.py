@@ -8,6 +8,7 @@ import logging
 import threading
 import Queue
 import json
+from multiprocessing import cpu_count
 # third-party
 
 # sjva 공용
@@ -24,7 +25,7 @@ from .logic_gallerydl import LogicGalleryDL
 
 #########################################################
 
-SIZE = 4
+SIZE = cpu_count()/2 if cpu_count() > 1 else cpu_count()
 
 class LogicQueue(object):
     static_index = 0
