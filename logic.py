@@ -74,13 +74,14 @@ class Logic(object):
     def plugin_load():
         try:
             logger.debug('%s plugin_load', package_name)
-            # gallery-dl conf
-            if not os.path.isfile(os.path.join(os.path.dirname(__file__), 'gallery-dl.conf')):
-                logger.debug("[gallery-dl] No config file found. Restoring default config...")
-                Logic.restore_setting()
-                
+
             # DB 초기화
             Logic.db_init()       
+
+            # gallery-dl conf
+            if not os.path.isfile(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'gallery-dl.conf')):
+                logger.debug("[gallery-dl] No config file found. Restoring default config...")
+                Logic.restore_setting()
             
             # bypass
             bypass = ModelSetting.get_bool('bypass')
@@ -295,7 +296,7 @@ class Logic(object):
                 old_config = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'gallery-dl.conf')
                 default_config = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'bin/gallery-dl-default.conf')
                 commands = [
-                    ['msg', u'잠시만 기다려주세요.']
+                    ['msg', u'잠시만 기다려주세요.'],
                     ['cp', default_config, old_config],
                     ['msg', u'복원이 완료되었습니다. 새로고침하세요.']
                 ]
