@@ -83,7 +83,7 @@ class Logic(object):
                 Logic.bypass()
 
             # gallery-dl conf
-            conf_path = os.path.join(os.path.dirname(__file__), 'gallery-dl.conf')
+            conf_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'gallery-dl.conf')
             if not os.path.isfile(conf_path):
                 Logic.restore_setting()
 
