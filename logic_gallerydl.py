@@ -96,7 +96,7 @@ class LogicGalleryDL:
             index += 1
             entity['index'] = index
             LogicGalleryDL.update_ui(entity)
-            logger.debug("gallery-dl: %s", line[:-1])
+            logger.debug("[gallery-dl][verbose] %s", line[:-1])
         except Exception as e:
           logger.error('Exception:%s', e)
           logger.error(traceback.format_exc())
