@@ -136,6 +136,7 @@ class LogicQueue(object):
             with LogicQueue.cv:
                 LogicQueue.waiting_queue = []
                 LogicQueue.cv.notify_all()
+
             for i in range(0, SIZE):
                 with LogicQueue.download_queue[i].mutex:
                     LogicQueue.download_queue[i].queue.clear()
@@ -147,6 +148,7 @@ class LogicQueue(object):
                 if e['status'] == '다운로드 중':
                     new_list.append(e)
             LogicQueue.entity_list = new_list
+            
             import plugin
             plugin.send_queue_list()
         except Exception as e:
