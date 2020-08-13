@@ -12,7 +12,7 @@
     <form id='setting' name='setting'>
         <div class="tab-content" id="nav-tabContent">
             {{ macros.m_tab_content_start('normal', true) }}
-            {{ macros.setting_global_scheduler_button(arg['global_scheduler'], arg['is_running']) }}
+            <!-- {{ macros.setting_global_scheduler_button(arg['global_scheduler'], arg['is_running']) }} -->
             {{ macros.setting_input_text('interval', '스케쥴링 실행 정보', value=arg['interval'], col='3', desc=['Inverval(단위: hour)']) }}
             {{ macros.setting_checkbox('auto_start', '시작시 자동실행', value=arg['auto_start'], desc='On : 시작시 자동으로 스케쥴러에 등록됩니다.') }}
             {{ macros.setting_input_textarea('downlist_normal', '자동 다운로드 할 url', value=arg['downlist_normal'], row='9', desc=['구분자 엔터']) }}

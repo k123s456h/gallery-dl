@@ -65,9 +65,9 @@ class LogicQueue(object):
                         SQ = LogicQueue.download_queue[i]
                         smallest = LogicQueue.download_queue[i].qsize()
                 
-                if smallest < SIZE/2:
+                if smallest < 1: # SIZE*1 = 대기 항목 수
                     with LogicQueue.cv:
-                        while len(LogicQueue.waiting_queue) == 0:
+                        while not len(LogicQueue.waiting_queue):
                             LogicQueue.cv.wait()
                     entity = LogicQueue.waiting_queue.pop(0)
                     LogicQueue.entity_list.append(entity)
@@ -101,9 +101,10 @@ class LogicQueue(object):
         try:
             entity = ModelGalleryDlItem.add(url)
             if entity is not None:
-                for idx, e in enumerate(LogicQueue.entity_list):
+                for e in LogicQueue.entity_list:
                     if e['url'] == entity['url']:
-                        del LogicQueue.entity_list[idx]
+                        return
+
                 with LogicQueue.cv:
                     LogicQueue.waiting_queue.append(entity)
                     LogicQueue.cv.notify_all()
@@ -148,7 +149,7 @@ class LogicQueue(object):
                 if e['status'] == '다운로드 중':
                     new_list.append(e)
             LogicQueue.entity_list = new_list
-            
+
             import plugin
             plugin.send_queue_list()
         except Exception as e:
