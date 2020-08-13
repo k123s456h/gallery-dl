@@ -25,13 +25,15 @@ from .logic_gallerydl import LogicGalleryDL
 
 #########################################################
 
-SIZE = int(cpu_count()/2) if cpu_count() > 1 else cpu_count()
+CPU = cpu_count()
+SIZE = int(CPU/2) if CPU > 1 else CPU
 
 class LogicQueue(object):
-    static_index = 0
+    waiting_queue = []
     download_queue = []
     download_thread = []
     entity_list = []
+    cv = threading.Condition()
 
     @staticmethod
     def queue_start():
@@ -44,10 +46,38 @@ class LogicQueue(object):
                 LogicQueue.download_thread[i].daemon = True  
                 LogicQueue.download_thread[i].start()
 
+            manager = threading.Thread(target=LogicQueue.queue_manager, args=())
+            manager.daemon = True
+            manager.start()
+
         except Exception as e: 
             logger.error('Exception:%s', e)
             logger.error(traceback.format_exc())
 
+    @staticmethod
+    def queue_manager():
+        while True:
+            try:
+                smallest = CPU
+                SQ = None
+                for i in range(0, SIZE):
+                    if LogicQueue.download_queue[i].qsize() < smallest:
+                        SQ = LogicQueue.download_queue[i]
+                        smallest = LogicQueue.download_queue[i].qsize()
+                
+                if smallest < SIZE/2:
+                    with LogicQueue.cv:
+                        while len(LogicQueue.waiting_queue) == 0:
+                            LogicQueue.cv.wait()
+                    entity = LogicQueue.waiting_queue.pop(0)
+                    LogicQueue.entity_list.append(entity)
+                    SQ.put(entity)
+                else:
+                    import time
+                    time.sleep(5)
+            except Exception as e:
+                logger.error('Exception:%s', e)
+                logger.error(traceback.format_exc())
 
     @staticmethod
     def download_thread_function(idx):
@@ -74,11 +104,9 @@ class LogicQueue(object):
                 for idx, e in enumerate(LogicQueue.entity_list):
                     if e['url'] == entity['url']:
                         del LogicQueue.entity_list[idx]
-                        #return
-                LogicQueue.entity_list.append(entity)
-                LogicQueue.download_queue[LogicQueue.static_index % SIZE].put(entity)
-
-            LogicQueue.static_index += 1
+                with LogicQueue.cv:
+                    LogicQueue.waiting_queue.append(entity)
+                    LogicQueue.cv.notify_all()
             return entity
         except Exception as e:
             logger.error('Exception:%s', e)
@@ -102,16 +130,25 @@ class LogicQueue(object):
     @staticmethod
     def reset_queue():
         try:
+            for e in LogicQueue.waiting_queue:
+                ModelGalleryDlItem.delete_by_url(e['url'])
+
+            with LogicQueue.cv:
+                LogicQueue.waiting_queue = []
+                LogicQueue.cv.notify_all()
             for i in range(0, SIZE):
                 with LogicQueue.download_queue[i].mutex:
                     LogicQueue.download_queue[i].queue.clear()
+            
+            new_list = []
             for e in LogicQueue.entity_list:
-                if e['status'] not in ['완료', '중복']:
+                if e['status'] not in ['완료', '중복', '다운로드 중']:
                     ModelGalleryDlItem.delete_by_url(e['url'])
-            LogicQueue.entity_list = []
+                if e['status'] == '다운로드 중':
+                    new_list.append(e)
+            LogicQueue.entity_list = new_list
             import plugin
             plugin.send_queue_list()
-            #LogicMD.stop()
         except Exception as e:
             logger.error('Exception:%s', e)
             logger.error(traceback.format_exc())
@@ -126,9 +163,10 @@ class LogicQueue(object):
                     new_list.append(e)
                 else:
                     failed_list.append(e)
-            for e in failed_list:
-                LogicQueue.download_queue[LogicQueue.static_index%SIZE].put(e)
-                LogicQueue.static_index += 1
+            with LogicQueue.cv:
+                for e in failed_list:
+                    LogicQueue.waiting_queue.append(e)
+                LogicQueue.cv.notify_all()
         except Exception as e:
             logger.error('Exception:%s', e)
             logger.error(traceback.format_exc())
