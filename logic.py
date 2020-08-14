@@ -86,8 +86,7 @@ class Logic(object):
             # bypass
             bypass = ModelSetting.get_bool('bypass')
             if bypass == True:
-                logger.debug("[gallery-dl] bypass dpi installing...")
-                Logic.bypass()
+                Logic.bypass(daemon=True)
 
             # 편의를 위해 json 파일 생성
             from plugin import plugin_info
@@ -324,19 +323,25 @@ class Logic(object):
     
     
     @staticmethod
-    def bypass():
+    def bypass(daemon=False):
         try:
             def func():
                 install_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'bin/iptables.sh')
                 os.chmod(install_path, 777)
 
-                import system
-                commands = [
-                    ['msg', u'잠시만 기다려주세요.'],
-                    [install_path],
-                    ['msg', u'<head><title>301 Moved Permanently</title></head>가 보이면 정상입니다.']
-                ]
-                system.SystemLogicCommand.start('설치', commands)
+                if daemon:
+                    commands = ['/bin/sh', install_path]
+                    import subprocess
+                    log = subprocess.check_output(commands, stderr=subprocess.STDOUT).decode('utf-8')
+                    logger.debug('[gallery-dl][enable-bypass] %s', log)
+                else:
+                    commands = [
+                        ['msg', u'잠시만 기다려주세요.'],
+                        [install_path],
+                        ['msg', u'<head><title>301 Moved Permanently</title></head>가 보이면 정상입니다.']
+                    ]
+                    import system
+                    system.SystemLogicCommand.start('설치', commands)
             t = threading.Thread(target=func, args=())
             t.setDaemon(True)
             t.start()
