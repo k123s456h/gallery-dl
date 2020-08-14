@@ -73,12 +73,14 @@ class LogicGalleryDL:
 
           (entity['title'], entity['artist'], entity['parody'], entity['total_image_count']) = \
           (info_json_directory['title'], str(artist), str(parody), info_json_directory['count'])
-        elif site == 'mangahere':
-          (entity['title'], entity['total_image_count']) = \
-          (info_json_directory['manga'], info_json_directory['count'])
         else:
-          entity['title'] = info_json_directory['title'] if 'title' in info_json_directory else info_json_directory['manga']
-          entity['count'] = info_json_directory['count'] if 'count' in info_json_directory else ''
+          entity['title'] = info_json_directory['title'] \
+                            if 'title' in info_json_directory and info_json_directory['title'].strip() != '' \
+                            else info_json_directory['manga']
+
+          entity['artist'] = info_json_directory['artist'] \
+                            if 'artist' in info_json_directory and info_json_directory['artist'].strip() != '' else ''
+          entity['total_image_count'] = info_json_directory['count'] if 'count' in info_json_directory else '-1'
         
         entity['status'] = '다운로드 중'
         LogicGalleryDL.update_ui(entity)
@@ -90,7 +92,7 @@ class LogicGalleryDL:
           commands = ['gallery-dl', url, 
                     '--ignore-config',
                     '--config', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'gallery-dl.conf'),
-                    '--option', 'extractor.user-agent='+user_agent]
+                    '--option', 'extractor.user-agent="'+user_agent+'"']
           proc = Popen(commands, stdout=PIPE, stderr=STDOUT)
           for line in iter(proc.stdout.readline, b''):
             index += 1
@@ -118,21 +120,25 @@ class LogicGalleryDL:
     raw_info = ''
     try:
       import subprocess
-      commands = ['gallery-dl', url,
-      '--ignore-config',
+      commands = ['gallery-dl',
       '--config', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'gallery-dl.conf'),
-      '--simulate', '--list-keywords']
+      '--simulate', '--list-keywords', url]
       raw_info = subprocess.check_output(commands, stderr=subprocess.STDOUT).decode('utf-8')
 
       info_json = {}
 
-      raw_info = raw_info[raw_info.find('Keywords for directory names:'):]
+      startidx = raw_info.find('Keywords for directory names:')
+      startidx = 0 if startidx == -1 else startidx
+      raw_info = raw_info[startidx:]
+
+      logger.debug("[gallery-dl][verbose] keywords:\n%s ...", raw_info[:200])
       raw_info = raw_info.split('\n')
       n = len(raw_info)
 
       keyword_type = ""
       keyword_name = ""
       keyword = ""
+
       for idx in range(0, n):
           if raw_info[idx].startswith('['):
               continue
