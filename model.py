@@ -93,8 +93,6 @@ class ModelSetting(db.Model):
                     continue
                 
                 if key == "gallery-dl_option_value":
-                    ### json grammar check
-                    value = value.replace(u"'", u'"')
                     with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'gallery-dl.conf'), 'w') as gdl_conf:
                         gdl_conf.write(value)
                         gdl_conf.close()
