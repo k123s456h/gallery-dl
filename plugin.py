@@ -105,8 +105,9 @@ def first_menu(sub):
         arg['is_installed'] = Logic.is_installed()  
         from datetime import datetime
         before = ModelSetting.get('hitomi_last_time')
+        arg['data_time'] = before
         arg['outdated'] = (datetime.now() - datetime.strptime(before, '%Y-%m-%d %H:%M:%S')).days >= 1
-        arg['is_downloading'] = scheduler.is_running('gallery-dl_data')
+        arg['is_downloading'] = ModelSetting.get('hitomi_data_status')
         return render_template('{package_name}_{sub}.html'.format(package_name=package_name, sub=sub), arg=arg)
     elif sub == 'queue':
         arg = ModelSetting.to_dict()
@@ -124,7 +125,7 @@ def first_menu(sub):
 @blueprint.route('/ajax/<sub>', methods=['GET', 'POST'])
 @login_required
 def ajax(sub):
-    logger.debug('AJAX %s %s', package_name, sub)
+    logger.debug('[gallery-dl] AJAX %s %s', package_name, sub)
     try:
         if sub == 'setting_save':
             ret = ModelSetting.setting_save(request)
@@ -132,7 +133,7 @@ def ajax(sub):
         elif sub == 'scheduler':
             enable = ModelSetting.get_bool('enable_searcher')
             go = request.form['scheduler']
-            logger.debug('scheduler :%s', go)
+            logger.debug('[gallery-dl] scheduler :%s', go)
             if go == 'true':
                 Logic.scheduler_start('normal')
                 if enable == True:
@@ -157,7 +158,7 @@ def ajax(sub):
                 ret = Logic.download_by_request(request)    # start download from here
                 return jsonify(ret)
             except Exception as e: 
-                logger.error('Exception:%s', e)
+                logger.error('[gallery-dl] Exception:%s', e)
                 logger.error(traceback.format_exc())
         elif sub == 'completed_remove':
             try:
@@ -165,7 +166,7 @@ def ajax(sub):
                 ret = LogicQueue.completed_remove()
                 return jsonify(ret)
             except Exception as e: 
-                logger.error('Exception:%s', e)
+                logger.error('[gallery-dl] Exception:%s', e)
                 logger.error(traceback.format_exc())
         elif sub == 'reset_queue':
             try:
@@ -173,7 +174,7 @@ def ajax(sub):
                 ret = LogicQueue.reset_queue()
                 return jsonify(ret)
             except Exception as e: 
-                logger.error('Exception:%s', e)
+                logger.error('[gallery-dl] Exception:%s', e)
                 logger.error(traceback.format_exc())
         elif sub == 'restart_uncompleted':
             try:
@@ -181,44 +182,51 @@ def ajax(sub):
                 ret = LogicQueue.restart_uncompleted()
                 return jsonify(ret)
             except Exception as e:
-                logger.error('Exception:%s', e)
+                logger.error('[gallery-dl] Exception:%s', e)
                 logger.error(traceback.format_exc())
         elif sub == 'item_list':
             try:
                 ret = Logic.item_list(request)
                 return jsonify(ret)
             except Exception as e: 
-                logger.error('Exception:%s', e)
+                logger.error('[gallery-dl] Exception:%s', e)
                 logger.error(traceback.format_exc())
         elif sub == 'list_remove':
             try:
                 ret = Logic.list_remove(request)
                 return jsonify(ret)
             except Exception as e: 
-                logger.error('Exception:%s', e)
+                logger.error('[gallery-dl] Exception:%s', e)
                 logger.error(traceback.format_exc())
         elif sub == 'install':
-            logger.debug('gallery-dl installing...')
+            logger.debug('[gallery-dl] installing...')
             Logic.install()
             return jsonify(True)
         elif sub == 'uninstall':
-            logger.debug('gallery-dl uninstalling...')
+            logger.debug('[gallery-dl] uninstalling...')
             Logic.uninstall()
             return jsonify(True)
         elif sub == 'default_setting':
-            logger.debug('restore default gallery-dl.conf...')
+            logger.debug('[gallery-dl] restore default gallery-dl.conf...')
             Logic.restore_setting()
             return jsonify(True)
         elif sub == 'bypass':
-            logger.debug('bypass dpi script installing...')
+            logger.debug('[gallery-dl] bypass dpi script installing...')
             Logic.bypass()
             return jsonify(True)
         elif sub == 'undo_bypass':
-            logger.debug('bypass dpi script uninstalling...')
+            logger.debug('[gallery-dl] bypass dpi script uninstalling...')
             Logic.undo_bypass()
             return jsonify(True)
+        elif sub == 'data_download':
+            logger.debug('[gallery-dl] hitomi data-download')
+            import threading
+            t = threading.Thread(target=LogicHitomi.download_json, args=())
+            t.setDaemon(True)
+            t.start()
+            return jsonify(True)
     except Exception as e: 
-        logger.error('Exception:%s', e)
+        logger.error('[gallery-dl] Exception:%s', e)
         logger.error(traceback.format_exc())  
         return jsonify('fail')   
 
@@ -231,11 +239,11 @@ sid_list = []
 @socketio.on('connect', namespace='/%s' % package_name)
 def connect():
     try:
-        logger.debug('socket_connect')
+        logger.debug('[gallery-dl] socket_connect')
         sid_list.append(request.sid)
         send_queue_list()
     except Exception as e: 
-        logger.error('Exception:%s', e)
+        logger.error('[gallery-dl] Exception:%s', e)
         logger.error(traceback.format_exc())
 
 
@@ -243,9 +251,9 @@ def connect():
 def disconnect():
     try:
         sid_list.remove(request.sid)
-        logger.debug('socket_disconnect')
+        logger.debug('[gallery-dl] socket_disconnect')
     except Exception as e: 
-        logger.error('Exception:%s', e)
+        logger.error('[gallery-dl] Exception:%s', e)
         logger.error(traceback.format_exc())
 
 @socketio.on('search', namespace='/%s' % package_name)

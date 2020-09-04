@@ -42,7 +42,7 @@ class ModelSetting(db.Model):
         try:
             return db.session.query(ModelSetting).filter_by(key=key).first().value.strip()
         except Exception as e:
-            logger.error('Exception:%s %s', e, key)
+            logger.error('[gallery-dl] Exception:%s %s', e, key)
             logger.error(traceback.format_exc())
             
     
@@ -51,7 +51,7 @@ class ModelSetting(db.Model):
         try:
             return int(ModelSetting.get(key))
         except Exception as e:
-            logger.error('Exception:%s %s', e, key)
+            logger.error('[gallery-dl] Exception:%s %s', e, key)
             logger.error(traceback.format_exc())
     
     @staticmethod
@@ -59,7 +59,7 @@ class ModelSetting(db.Model):
         try:
             return (ModelSetting.get(key) == 'True')
         except Exception as e:
-            logger.error('Exception:%s %s', e, key)
+            logger.error('[gallery-dl] Exception:%s %s', e, key)
             logger.error(traceback.format_exc())
 
     @staticmethod
@@ -72,7 +72,7 @@ class ModelSetting(db.Model):
             else:
                 db.session.add(ModelSetting(key, value.strip()))
         except Exception as e:
-            logger.error('Exception:%s %s', e, key)
+            logger.error('[gallery-dl] Exception:%s %s', e, key)
             logger.error(traceback.format_exc())
 
     @staticmethod
@@ -81,7 +81,7 @@ class ModelSetting(db.Model):
             from framework.util import Util
             return Util.db_list_to_dict(db.session.query(ModelSetting).all())
         except Exception as e:
-            logger.error('Exception:%s %s', e, key)
+            logger.error('[gallery-dl] Exception:%s %s', e, key)
             logger.error(traceback.format_exc())
 
 
@@ -99,14 +99,14 @@ class ModelSetting(db.Model):
                 else:
                     if key == 'interval':
                         value = str(int(value)*60)
-                    logger.debug('Key:%s Value:%s', key, value)
+                    logger.debug('[gallery-dl] Key:%s Value:%s', key, value)
                     entity = db.session.query(ModelSetting).filter_by(key=key).with_for_update().first()
                     entity.value = value
                 
             db.session.commit()
             return True                  
         except Exception as e: 
-            logger.error('Exception:%s', e)
+            logger.error('[gallery-dl] Exception:%s', e)
             logger.error(traceback.format_exc())
             logger.debug('Error Key:%s Value:%s', key, value)
             return False
@@ -153,7 +153,7 @@ class ModelGalleryDlItem(db.Model):
     @staticmethod
     def save_as_dict(d):
         try:
-            logger.debug(d)
+            logger.debug('[gallery-dl] ' + str(d))
             entity = db.session.query(ModelGalleryDlItem).filter_by(id=d['id']).with_for_update().first()
             if entity is not None:
                 entity.status = unicode(d['status'])
@@ -166,7 +166,7 @@ class ModelGalleryDlItem(db.Model):
 
                 db.session.commit()
         except Exception as e:
-            logger.error('Exception:%s', e)
+            logger.error('[gallery-dl] Exception:%s', e)
             logger.error(traceback.format_exc())
 
     @staticmethod
@@ -178,7 +178,7 @@ class ModelGalleryDlItem(db.Model):
             else:
                 return None
         except Exception as e:
-            logger.error('Exception:%s %s', e, url)
+            logger.error('[gallery-dl] Exception:%s %s', e, url)
             logger.error(traceback.format_exc())
 
     @staticmethod
@@ -187,7 +187,7 @@ class ModelGalleryDlItem(db.Model):
             entity = db.session.query(ModelGalleryDlItem).filter( ~ModelGalleryDlItem.status.like(unicode('완료'))).all()
             return entity
         except Exception as e:
-            logger.error('Exception: %s', e)
+            logger.error('[gallery-dl] Exception: %s', e)
             logger.error(traceback.format_exc())
 
     @staticmethod
@@ -203,7 +203,7 @@ class ModelGalleryDlItem(db.Model):
                 db.session.commit()
             return entity.as_dict()
         except Exception as e:
-            logger.error('Exception:%s', e)
+            logger.error('[gallery-dl] Exception:%s', e)
             logger.error(traceback.format_exc())
     
     @staticmethod
@@ -215,7 +215,7 @@ class ModelGalleryDlItem(db.Model):
                 db.session.commit()
             return True
         except Exception, e:
-            logger.error('Exception:%s', e)
+            logger.error('[gallery-dl] Exception:%s', e)
             logger.error(traceback.format_exc())
             return False
 
@@ -229,6 +229,6 @@ class ModelGalleryDlItem(db.Model):
                 db.session.commit()
             return True
         except Exception, e:
-            logger.error('Exception:%s', e)
+            logger.error('[gallery-dl] Exception:%s', e)
             logger.error(traceback.format_exc())
             return False

@@ -100,7 +100,7 @@ class LogicGalleryDL:
             LogicGalleryDL.update_ui(entity)
             logger.debug("[gallery-dl][verbose] %s", line[:-1])
         except Exception as e:
-          logger.error('Exception:%s', e)
+          logger.error('[gallery-dl] Exception:%s', e)
           logger.error(traceback.format_exc())
           entity['status'] = '실패'
           LogicGalleryDL.update_ui(entity)
@@ -112,7 +112,7 @@ class LogicGalleryDL:
         ModelGalleryDlItem.save_as_dict(entity)
         return True
     except Exception as e: 
-            logger.error('Exception:%s', e)
+            logger.error('[gallery-dl] Exception:%s', e)
             logger.error(traceback.format_exc())
 
   @staticmethod
@@ -131,7 +131,8 @@ class LogicGalleryDL:
       startidx = 0 if startidx == -1 else startidx
       raw_info = raw_info[startidx:]
 
-      logger.debug("[gallery-dl][verbose] keywords:\n%s ...", raw_info[:200])
+      logger.debug("[gallery-dl] url:%s", url)
+      logger.debug("[gallery-dl] raw_info:\n%s", raw_info)
       raw_info = raw_info.split('\n')
       n = len(raw_info)
 
@@ -168,10 +169,11 @@ class LogicGalleryDL:
             else:
               info_json[keyword_type][keyword_name].append(raw_info[idx][4:].strip().decode('utf-8'))
       
-      # logger.debug("%s info: %s", url, info_json)
+      logger.debug("[gallery-dl] processed data: ")
+      logger.debug("[gallery-dl] %s", info_json)
       return [0, info_json]
     except Exception as e:
-      logger.error('Exception at: %s', url)
+      logger.error('[gallery-dl] Exception at: %s', url)
       logger.error(traceback.format_exc())
       return [-1, str(e)]
 
@@ -192,7 +194,7 @@ class LogicGalleryDL:
   @staticmethod
   def scheduler_function():
       from logic_queue import LogicQueue
-      logger.debug('gallery-dl scheduler normal Start')
+      logger.debug('[gallery-dl] scheduler normal Start')
       try:
           downlist = ModelSetting.get('downlist_normal')
           downlist = downlist.split('\n')
@@ -204,7 +206,7 @@ class LogicGalleryDL:
           import plugin
           plugin.send_queue_list()
       except Exception as e:
-          logger.error('Exception:%s', e)
+          logger.error('[gallery-dl] Exception:%s', e)
           logger.error(traceback.format_exc())
 
 

@@ -62,36 +62,67 @@ class LogicHitomi:
   @staticmethod
   def bundlejson():
     try:
-      #bundlejsonurl = 'https://kurtbestor.pythonanywhere.com/h_data'
-      bundlejsonurl = 'http://k123s456h.pythonanywhere.com/h_data/info.json'
+      bundlejsonurl = 'https://kurtbestor.pythonanywhere.com/h_data'
+      #bundlejsonurl = 'http://k123s456h.pythonanywhere.com/h_data/info.json'
       res = LogicHitomi.get_response(bundlejsonurl)
       bundle_json = json.loads(res) 
       return bundle_json
     except Exception as e:
-      logger.error('Exception:%s', e)
+      logger.error('[gallery-dl] Exception:%s', e)
       logger.error(traceback.format_exc())
 
   @staticmethod
   def download_json():
     try:
-      logger.debug("### gallery-dl: downloading hitomi json file")
+      def down(name, url):
+        logger.debug("[gallery-dl] downloading %s", name)
+        urllib.urlretrieve(url, os.path.join(LogicHitomi.basepath, name))
+
+      for filename in os.listdir(LogicHitomi.basepath):
+        file_path = os.path.join(LogicHitomi.basepath, filename)
+        try:
+          os.remove(file_path)
+        except:
+          pass
+      
+      logger.debug("[gallery-dl] downloading hitomi json files")
+      ModelSetting.set('hitomi_data_status', 'pending')
 
       bundle_json = LogicHitomi.bundlejson()
+      last_num = len(bundle_json['urls'])
 
-      last_num = ""
-      for [name, url] in bundle_json["urls"]:
-        urllib.urlretrieve(url, os.path.join(LogicHitomi.basepath, name))
-        last_num = name
-      last_num = ''.join(x for x in last_num if x.isdigit())
+      logger.debug("[gallery-dl] json download target 0 to %s", str(last_num-1))
+      threads = []
+      MAX = 5
+      idx = 0
+      
+      for i in range(0, last_num):
+        [name, url] = bundle_json['urls'][i]
+        t = threading.Thread(target=down, args=(name, url,))
+        t.setDaemon(True)
+        threads.append(t)
+
+      while(idx < last_num):
+        threads[idx].start()
+        if(idx>0 and idx%MAX == 0):
+          for t in threads[idx-MAX:idx]:
+            t.join()
+        idx += 1
+        
+      for t in threads[idx-MAX:]:
+        t.join()
+
+      logger.debug("[gallery-dl] downloading hitomi json files DONE")
+      ModelSetting.set('hitomi_data_status', 'done')
       ModelSetting.set('hitomi_last_time', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-      ModelSetting.set('hitomi_last_num', last_num)
+      ModelSetting.set('hitomi_last_num', str(last_num))
     except Exception as e:
-      logger.error('Exception:%s', e)
+      logger.error('[gallery-dl] Exception:%s', e)
       logger.error(traceback.format_exc())
   
   @staticmethod
   def download_json_forbidden():
-    '''
+    '''python 3.6
     html = 'https://kurtbestor.github.io/res/raw.txt' 다운로드 <- 바이트 스트링
     s_b64 = html.replace(' ', '').replace('\n', '').replace('\r', '')
     import base64
@@ -151,8 +182,8 @@ class LogicHitomi:
           if gallery[key].strip().lower() not in value:
             return False
       except Exception as e:
-        logger.debug("Exception at: %s %s", type(gallery[key]) ,str(gallery[key]))
-        logger.error('Exception:%s', e)
+        logger.debug("[gallery-dl] Exception at: %s %s", type(gallery[key]) ,str(gallery[key]))
+        logger.error('[gallery-dl] Exception:%s', e)
         logger.error(traceback.format_exc())
 
 
@@ -236,7 +267,7 @@ class LogicHitomi:
 
       return url_from_url_from_hash(galleryid, image, dir, ext, base)
     except Exception as e:
-      logger.error('Exception:%s', e)
+      logger.error('[gallery-dl] Exception:%s', e)
       logger.error(traceback.format_exc())
       return '#'
 
@@ -247,11 +278,12 @@ class LogicHitomi:
       # key:
       # type, id, l, n, a [],  t [],  p [], g [], c []
       # galleries0.json is the latest
-      logger.debug("search condition: %s", str(condition))
+      logger.debug("[gallery-dl] manual search positive condition: %s", str(condition))
+      logger.debug("[gallery-dl] manual search negative condition: %s", str(condition_negative))
       ret = []
       last_num = int(ModelSetting.get('hitomi_last_num'))
 
-      for num in range(0, last_num + 1):
+      for num in range(0, last_num):
         item = "galleries" + str(num) + ".json"
         with open(os.path.join(LogicHitomi.basepath, item)) as galleries:
           json_item = json.loads(galleries.read())
@@ -279,13 +311,13 @@ class LogicHitomi:
                 ret.append(gallery)
             except Exception as e:
               import traceback
-              logger.error('Exception:%s', e)
+              logger.error('[gallery-dl] Exception:%s', e)
               logger.error(traceback.format_exc())
               # no such key for this item
           galleries.close()
       return ret
     except Exception as e:
-      logger.error('Exception:%s', e)
+      logger.error('[gallery-dl] Exception:%s', e)
       logger.error(traceback.format_exc())
 
 
@@ -314,7 +346,7 @@ class LogicHitomi:
           ret['c'] = parse(value)
       return ret
     except Exception as e:
-      logger.error('Exception:%s', e)
+      logger.error('[gallery-dl] Exception:%s', e)
       logger.error(traceback.format_exc())
 
 
@@ -350,13 +382,13 @@ class LogicHitomi:
       t.start()
 
     except Exception as e:
-      logger.error('Exception:%s', e)
+      logger.error('[gallery-dl] Exception:%s', e)
       logger.error(traceback.format_exc())
 
 
   @staticmethod
   def scheduler_function():
-      logger.debug('gallery-dl scheduler hitomi Start')
+      logger.debug('[gallery-dl] scheduler hitomi Start')
       try:
         condition_positive = {}
         condition_negative = {}
@@ -384,7 +416,7 @@ class LogicHitomi:
         t.setDaemon(True)
         t.start()
       except Exception as e:
-        logger.error('Exception:%s', e)
+        logger.error('[gallery-dl] Exception:%s', e)
         logger.error(traceback.format_exc())
 
 

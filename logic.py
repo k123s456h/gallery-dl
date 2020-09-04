@@ -36,6 +36,7 @@ class Logic(object):
 
         'downlist_normal': '',
 
+        'hitomi_data_status': 'done',
         'hitomi_last_time': "1970-01-01 00:00:01",
         'hitomi_last_num': "-1",
 
@@ -66,15 +67,13 @@ class Logic(object):
             db.session.commit()
             Logic.migration()
         except Exception as e:
-            logger.error('Exception:%s', e)
+            logger.error('[gallery-dl] Exception:%s', e)
             logger.error(traceback.format_exc())
 
 
     @staticmethod
     def plugin_load():
         try:
-            logger.debug('%s plugin_load', package_name)
-
             # DB 초기화
             Logic.db_init()       
 
@@ -117,7 +116,7 @@ class Logic(object):
                     Logic.scheduler_start('hitomi') 
 
         except Exception as e:
-            logger.error('Exception:%s', e)
+            logger.error('[gallery-dl] Exception:%s', e)
             logger.error(traceback.format_exc())
 
 
@@ -126,7 +125,7 @@ class Logic(object):
         try:
             logger.debug('%s plugin_unload', package_name)
         except Exception as e:
-            logger.error('Exception:%s', e)
+            logger.error('[gallery-dl] Exception:%s', e)
             logger.error(traceback.format_exc())
 
 
@@ -139,7 +138,7 @@ class Logic(object):
             job = Job(package_name, job_id, interval, Logic.scheduler_function, u"gallery-dl_"+sub, False, args=sub)
             scheduler.add_job_instance(job)
         except Exception as e:
-            logger.error('Exception:%s', e)
+            logger.error('[gallery-dl] Exception:%s', e)
             logger.error(traceback.format_exc())
 
 
@@ -150,7 +149,7 @@ class Logic(object):
             logger.debug('%s scheduler_stop', job_id)
             scheduler.remove_job(job_id)
         except Exception as e:
-            logger.error('Exception:%s', e)
+            logger.error('[gallery-dl] Exception:%s', e)
             logger.error(traceback.format_exc())
 
     @staticmethod
@@ -159,7 +158,10 @@ class Logic(object):
             if sub == 'normal':
                 LogicGalleryDL.scheduler_function()
             elif sub == 'hitomi':
-                LogicHitomi.scheduler_function()
+                if(ModelSetting.get('hitomi_data_status') == 'pending'):
+                    logger.debug("[gallery-dl] hitomi json data is still downloading! skip schedule action")
+                else:
+                    LogicHitomi.scheduler_function()
             elif sub == 'data':
                 from datetime import datetime
                 before = ModelSetting.get('hitomi_last_time')
@@ -168,7 +170,7 @@ class Logic(object):
                     t.setDaemon(True)
                     t.start()
         except Exception as e:
-            logger.error('Exception:%s', e)
+            logger.error('[gallery-dl] Exception:%s', e)
             logger.error(traceback.format_exc())
 
 
@@ -190,7 +192,7 @@ class Logic(object):
                 threading.Thread(target=func, args=()).start()
                 ret = 'thread'
         except Exception as e: 
-            logger.error('Exception:%s', e)
+            logger.error('[gallery-dl] Exception:%s', e)
             logger.error(traceback.format_exc())
             ret = 'fail'
         return ret
@@ -205,7 +207,7 @@ class Logic(object):
                         return True
             return False
         except Exception as e: 
-            logger.error('Exception:%s', e)
+            logger.error('[gallery-dl] Exception:%s', e)
             logger.error(traceback.format_exc())
             ret = 'fail'
 
@@ -216,7 +218,7 @@ class Logic(object):
             db.session.commit()
             return True
         except Exception as e: 
-            logger.error('Exception:%s', e)
+            logger.error('[gallery-dl] Exception:%s', e)
             logger.error(traceback.format_exc())
             return False
 
@@ -226,7 +228,7 @@ class Logic(object):
         try:
             logger.debug(data)
         except Exception as e: 
-            logger.error('Exception:%s', e)
+            logger.error('[gallery-dl] Exception:%s', e)
             logger.error(traceback.format_exc())
 
     @staticmethod
@@ -234,7 +236,7 @@ class Logic(object):
         try:
             pass
         except Exception as e:
-            logger.error('Exception:%s', e)
+            logger.error('[gallery-dl] Exception:%s', e)
             logger.error(traceback.format_exc())
 
 #########################################################
@@ -253,7 +255,7 @@ class Logic(object):
             #     return False
         except Exception as e: 
             return False
-            # logger.error('Exception:%s', e)
+            # logger.error('[gallery-dl] Exception:%s', e)
             # logger.error(traceback.format_exc())
 
     @staticmethod
@@ -274,7 +276,7 @@ class Logic(object):
             t.setDaemon(True)
             t.start()
         except Exception as e:
-            logger.error('Exception: %s', e)
+            logger.error('[gallery-dl] Exception: %s', e)
             logger.error(traceback.format_exc())
 
     
@@ -296,7 +298,7 @@ class Logic(object):
             t.setDaemon(True)
             t.start()
         except Exception as e:
-            logger.error('Exception: %s', e)
+            logger.error('[gallery-dl] Exception: %s', e)
             logger.error(traceback.format_exc())
 
     @staticmethod
@@ -318,7 +320,7 @@ class Logic(object):
             t.setDaemon(True)
             t.start()
         except Exception as e:
-            logger.error('Exception: %s', e)
+            logger.error('[gallery-dl] Exception: %s', e)
             logger.error(traceback.format_exc())
     
     
@@ -346,7 +348,7 @@ class Logic(object):
             t.setDaemon(True)
             t.start()
         except Exception as e:
-            logger.error('Exception: %s', e)
+            logger.error('[gallery-dl] Exception: %s', e)
             logger.error(traceback.format_exc())
 
     
@@ -368,7 +370,7 @@ class Logic(object):
             t.setDaemon(True)
             t.start()
         except Exception as e:
-            logger.error('Exception: %s', e)
+            logger.error('[gallery-dl] Exception: %s', e)
             logger.error(traceback.format_exc())
 
 
@@ -386,7 +388,7 @@ class Logic(object):
 
             return True
         except Exception as e:
-            logger.error('Exception:%s', e)
+            logger.error('[gallery-dl] Exception:%s', e)
             logger.error(traceback.format_exc())
             return False
 
@@ -421,7 +423,7 @@ class Logic(object):
             ret['paging'] = Util.get_paging_info(count, page, page_size)
             return ret
         except Exception, e:
-            logger.error('Exception:%s', e)
+            logger.error('[gallery-dl] Exception:%s', e)
             logger.error(traceback.format_exc())
 
     @staticmethod
@@ -435,7 +437,7 @@ class Logic(object):
                 db.session.commit()
             return True
         except Exception, e:
-            logger.error('Exception:%s', e)
+            logger.error('[gallery-dl] Exception:%s', e)
             logger.error(traceback.format_exc())
             return False
 

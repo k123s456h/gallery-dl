@@ -113,6 +113,7 @@
                         </em>
                     </div>
                 </div>
+                {{ macros.setting_button([['data_download', '히토미 데이터 수동 새로고침']], left='', desc='다운받은 json파일이 불완전하거나 이상할 때 씁니다. 평소에는 쓸 일 없습니다.') }}
             </div>
 
 
@@ -147,6 +148,20 @@
 
         window.location.href = '/' + package_name + '/queue'
     });
+
+    $("body").on('click', '#data_download', function(e) {
+        e.preventDefault();
+        callback(function() {
+            $.post({
+                url: '/' + package_name + '/ajax/data_download',
+                success: function(data) {
+                    if (data) {
+                        console.log("success at requesting data-download command");
+                    }
+                }
+            })
+        })
+    })
 
     $(document).ready(function() {
         use_collapse('enable_searcher');

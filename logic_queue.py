@@ -26,7 +26,7 @@ from .logic_gallerydl import LogicGalleryDL
 #########################################################
 
 CPU = cpu_count()
-SIZE = int(CPU/2) if CPU > 1 else CPU
+SIZE = int(CPU/2) if CPU > 1 else int(CPU)
 
 class LogicQueue(object):
     waiting_queue = []
@@ -51,7 +51,7 @@ class LogicQueue(object):
             manager.start()
 
         except Exception as e: 
-            logger.error('Exception:%s', e)
+            logger.error('[gallery-dl] Exception:%s', e)
             logger.error(traceback.format_exc())
 
     @staticmethod
@@ -76,7 +76,7 @@ class LogicQueue(object):
                     import time
                     time.sleep(5)
             except Exception as e:
-                logger.error('Exception:%s', e)
+                logger.error('[gallery-dl] Exception:%s', e)
                 logger.error(traceback.format_exc())
 
     @staticmethod
@@ -84,7 +84,7 @@ class LogicQueue(object):
         while True:
             try:
                 entity = LogicQueue.download_queue[idx].get()
-                logger.debug('Queue receive item: %s', entity['url'])
+                logger.debug('[gallery-dl] Queue receive item: %s', entity['url'])
 
                 if entity['status'] == '완료':
                     entity['status'] = '중복'
@@ -93,7 +93,7 @@ class LogicQueue(object):
                 else:
                     LogicGalleryDL.make_download(entity) 
             except Exception as e: 
-                logger.error('Exception:%s', e)
+                logger.error('[gallery-dl] Exception:%s', e)
                 logger.error(traceback.format_exc())
 
     @staticmethod
@@ -110,7 +110,7 @@ class LogicQueue(object):
                     LogicQueue.cv.notify_all()
             return entity
         except Exception as e:
-            logger.error('Exception:%s', e)
+            logger.error('[gallery-dl] Exception:%s', e)
             logger.error(traceback.format_exc())
     
     @staticmethod
@@ -124,7 +124,7 @@ class LogicQueue(object):
             import plugin
             plugin.send_queue_list()
         except Exception as e:
-            logger.error('Exception:%s', e)
+            logger.error('[gallery-dl] Exception:%s', e)
             logger.error(traceback.format_exc())
 
 
@@ -153,7 +153,7 @@ class LogicQueue(object):
             import plugin
             plugin.send_queue_list()
         except Exception as e:
-            logger.error('Exception:%s', e)
+            logger.error('[gallery-dl] Exception:%s', e)
             logger.error(traceback.format_exc())
 
     @staticmethod
@@ -171,5 +171,5 @@ class LogicQueue(object):
                     LogicQueue.waiting_queue.append(e)
                 LogicQueue.cv.notify_all()
         except Exception as e:
-            logger.error('Exception:%s', e)
+            logger.error('[gallery-dl] Exception:%s', e)
             logger.error(traceback.format_exc())
