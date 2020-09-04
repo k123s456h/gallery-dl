@@ -340,7 +340,18 @@ class Logic(object):
                     commands = [
                         ['msg', u'잠시만 기다려주세요.'],
                         [install_path],
-                        ['msg', u'<head><title>301 Moved Permanently</title></head>가 보이면 정상입니다.']
+                        ['msg', u'-----------------------------------'],
+                        ['msg', u'''
+위 로그에서
+<html>
+<head><title>301 Moved Permanently</title></head>
+<body>
+<center><h1>301 Moved Permanently</h1></center>
+<hr><center>openresty</center>
+</body>
+</html>
+가 보이면 정상입니다.
+                        ''']
                     ]
                     import system
                     system.SystemLogicCommand.start('설치', commands)
