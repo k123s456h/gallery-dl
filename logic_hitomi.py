@@ -163,9 +163,9 @@ class LogicHitomi:
       key = key.encode('utf-8')
 
       if key not in gallery:
-        return False
+        continue
       if gallery[key] is None:
-        return False
+        continue
 
       try:
         if key in ['a', 'g', 'c', 'p']: # OR
