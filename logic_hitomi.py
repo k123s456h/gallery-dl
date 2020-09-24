@@ -159,7 +159,7 @@ class LogicHitomi:
     condition = LogicHitomi.trim_condition(condition)
     condition_negative = LogicHitomi.trim_condition(condition_negative)
 
-    for key, value in condition.items():  # AND
+    for key, value in condition.items():
       key = key.encode('utf-8')
 
       if key not in gallery:
@@ -168,26 +168,38 @@ class LogicHitomi:
         return False
 
       try:
-        if key in ['a', 't', 'p', 'g', 'c']:
+        if key in ['a', 'g', 'c', 'p']: # OR
 
+          tmp = False
           for condition_value in value:
-            tmp = False
-            for gallery_value in gallery[key]:
-              if condition_value.strip().lower() in gallery_value.strip().lower():
-                tmp = True
-            if tmp == False:
-              return False
-
+            if condition_value in gallery[key]:
+              tmp = True
+              break
+          if tmp == False:
+            return False
+          
+        elif key in ['t']:  # AND
+          
+          tmp = True
+          for gallery_value in gallery[key]:
+            if gallery_value not in value:
+              tmp = False
+              break
+          if tmp == False:
+            return False
+          
         else:
           if gallery[key].strip().lower() not in value:
+            logger.debug("[gallery-dl] No such key %s in value %s", key, value)
             return False
+
       except Exception as e:
         logger.debug("[gallery-dl] Exception at: %s %s", type(gallery[key]) ,str(gallery[key]))
         logger.error('[gallery-dl] Exception:%s', e)
         logger.error(traceback.format_exc())
 
 
-    for key, value in condition_negative.items(): # OR
+    for key, value in condition_negative.items():
       key = key.encode('utf-8')
 
       if key not in gallery:
@@ -195,10 +207,11 @@ class LogicHitomi:
       if gallery[key] is None:
         continue
 
+
       if key in ['a', 't', 'p', 'g', 'c']:
 
-        for condition_value in value:
-          for gallery_value in gallery[key]:
+        for gallery_value in gallery[key]:
+          for condition_value in value:
             if condition_value.strip().lower() in gallery_value.strip().lower():
               return False
 
