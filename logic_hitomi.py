@@ -166,6 +166,8 @@ class LogicHitomi:
         return False
       if gallery[key] is None:
         return False
+      if len(gallery[key]) < 1:
+        return False
 
       try:
         if key in ['a', 't', 'p', 'g', 'c']:
