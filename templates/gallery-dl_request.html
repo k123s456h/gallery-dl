@@ -160,41 +160,78 @@
         win.focus();
     }
 
-    function make_search_result(data) {
-        document.getElementById("search_result_list").innerHTML = "";
-        for (let i = static_index - delta; i < static_index && i < result_length && i >= 0; i++) {
-            id = data[i]['id'] == undefined ? 0 : data[i]['id']
-            str = ''
-            str += '<div id="queue_' + id + '_div">'
-            str += '</div>' //one
-            document.getElementById("search_result_list").innerHTML += str;
+    function make_search_result(data, change_page=false) {
+        const dom_current_result_list = document.getElementById('search_result_list');
+        const current_visible_length = document.querySelectorAll('#search_result_list > .gallery').length;
 
-            str = make_queue_one(data[i])
-            let element = document.getElementById('queue_' + id + '_div')
-            if (element.previousSibling != null) {
-                str = m_hr(0) + str
-            }
-            element.innerHTML = str;
+        if(change_page)
+        {
+            dom_current_result_list.innerHTML = "";
         }
 
-        $('.manual_download_btn').click(function() {
-            url = this.value;
-            console.log(`added to queue: ${url}`);
-            add_queue(url);
-        });
+        if( current_visible_length < delta )
+        {
+            for(let i = static_index - delta + current_visible_length; i < static_index && i < result_length && i >= 0; i++)
+            {
+                let id = data[i]['id'] == undefined ? 0 : data[i]['id'];
+
+                let gallery = document.createElement('div');
+                gallery.id = `queue_${id}_div`;
+                gallery.classList = "gallery";
+                if( current_visible_length > 0 )
+                {
+                    gallery.innerHTML += m_hr(0);
+                }
+                gallery.innerHTML += make_queue_one(data[i]);
+
+                document.getElementById("search_result_list").appendChild(gallery);
+            }
+        }
 
 
-        $('.copy_option').on('change', function() {
-            var value = `<input value="${$(this).val()}" id="selVal" />`;
-            $(value).insertAfter($(this));
-            $("#selVal").select();
-            document.execCommand("Copy");
-            $.notify(`<strong>${$(this).val()} 클립보드로 복사</strong>`, {
-                type: 'success'
-            });
-            $('body').find("#selVal").remove();
-        });
 
+
+
+        // document.getElementById("search_result_list").innerHTML = "";
+
+        // for (let i = static_index - delta; i < static_index && i < result_length && i >= 0; i++) {
+
+        //     id = data[i]['id'] == undefined ? 0 : data[i]['id']
+        //     str = ''
+        //     str += '<div id="queue_' + id + '_div" class="gallery" >'
+        //     if( document.getElementById("search_result_list").children.length > 0 )
+        //     {
+        //         str += m_hr(0);
+        //     }
+        //     str = make_queue_one(data[i]);
+
+        //     str += '</div>' //one
+        //     document.getElementById("search_result_list").innerHTML += str;
+
+        //     // str = make_queue_one(data[i])
+        //     // let element = document.getElementById('queue_' + id + '_div')
+        //     // if (element.previousSibling != null) {
+        //     //     str = m_hr(0) + str
+        //     // }
+        //     // element.innerHTML = str;
+        // }
+        // $('.manual_download_btn').click(function() {
+        //     url = this.value;
+        //     console.log(`added to queue: ${url}`);
+        //     add_queue(url);
+        // });
+
+
+        // $('.copy_option').on('change', function() {
+        //     var value = `<input value="${$(this).val()}" id="selVal" />`;
+        //     $(value).insertAfter($(this));
+        //     $("#selVal").select();
+        //     document.execCommand("Copy");
+        //     $.notify(`<strong>${$(this).val()} 클립보드로 복사</strong>`, {
+        //         type: 'success'
+        //     });
+        //     $('body').find("#selVal").remove();
+        // });
     }
 
     function make_list(array, placeholder) {
@@ -346,14 +383,34 @@
     $("body").on('click', '#before_btn', function(e) {
         e.preventDefault();
         static_index - delta <= 0 ? static_index : static_index -= delta;
-        make_search_result(search_result);
+        make_search_result(search_result, true);
     });
 
 
     $("body").on('click', '#next_btn', function(e) {
         e.preventDefault();
         static_index > result_length ? static_index : static_index += delta;
-        make_search_result(search_result);
+        console.log('next')
+        make_search_result(search_result, true);
     });
+
+    $('body').on('click', '.manual_download_btn', function(e){
+        e.preventDefault();
+        url = this.value;
+        console.log(`added to queue: ${url}`);
+        add_queue(url);
+    })
+
+    $('body').on('change', '.copy_option', function(e){
+        e.preventDefault();
+        var value = `<input value="${$(this).val()}" id="selVal" />`;
+        $(value).insertAfter($(this));
+        $("#selVal").select();
+        document.execCommand("Copy");
+        $.notify(`<strong>${$(this).val()} 클립보드로 복사</strong>`, {
+            type: 'success'
+        });
+        $('body').find("#selVal").remove();
+    })
 </script>
 {% endblock %}

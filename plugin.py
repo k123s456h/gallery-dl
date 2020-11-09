@@ -26,6 +26,8 @@ logger = get_logger(package_name)
 from .logic import Logic
 from .model import ModelSetting
 from logic_queue import LogicQueue
+from .logic_hitomi import LogicHitomi
+
 
 
 blueprint = Blueprint(package_name, package_name, url_prefix='/%s' %  package_name, template_folder=os.path.join(os.path.dirname(__file__), 'templates'))
@@ -61,18 +63,17 @@ menu = {
 #########################################################
 # WEB Menu
 #########################################################
-from .logic_hitomi import LogicHitomi
 
 @blueprint.route('/')
 def home():
-    LogicHitomi.flag = False
+    LogicHitomi.stop = True
     return redirect('/%s/setting' % package_name)
     
 @blueprint.route('/<sub>')
 @login_required
 def first_menu(sub): 
     if sub != 'request':
-        LogicHitomi.flag = False
+        LogicHitomi.stop = True
 
     if sub == 'setting':
         arg = ModelSetting.to_dict()
@@ -162,7 +163,6 @@ def ajax(sub):
                 logger.error(traceback.format_exc())
         elif sub == 'completed_remove':
             try:
-                from logic_queue import LogicQueue
                 ret = LogicQueue.completed_remove()
                 return jsonify(ret)
             except Exception as e: 
@@ -170,7 +170,6 @@ def ajax(sub):
                 logger.error(traceback.format_exc())
         elif sub == 'reset_queue':
             try:
-                from logic_queue import LogicQueue
                 ret = LogicQueue.reset_queue()
                 return jsonify(ret)
             except Exception as e: 
@@ -178,7 +177,6 @@ def ajax(sub):
                 logger.error(traceback.format_exc())
         elif sub == 'restart_uncompleted':
             try:
-                from logic_queue import LogicQueue
                 ret = LogicQueue.restart_uncompleted()
                 return jsonify(ret)
             except Exception as e:
@@ -250,6 +248,8 @@ def connect():
 @socketio.on('disconnect', namespace='/%s' % package_name)
 def disconnect():
     try:
+        LogicHitomi.stop = True
+
         sid_list.remove(request.sid)
         logger.debug('[gallery-dl] socket_disconnect')
     except Exception as e: 
@@ -258,7 +258,9 @@ def disconnect():
 
 @socketio.on('search', namespace='/%s' % package_name)
 def search(arg):
-    from .logic_hitomi import LogicHitomi
+    LogicHitomi.stop = True
+    import time
+    time.sleep(2)
     LogicHitomi.search(arg)
 
 def socketio_callback(cmd, data, encoding=True):

@@ -49,7 +49,7 @@ class LogicHitomi:
   if not os.path.isdir(basepath):
     os.mkdir(basepath)
   
-  flag = True
+  stop = False
 
   @staticmethod
   def get_response(url):
@@ -154,6 +154,12 @@ class LogicHitomi:
 
   @staticmethod
   def is_satisfied(gallery={}, condition={}, condition_negative={}):
+    # condition: { key1:[val1], key2:[val2] }
+    # gallery:
+    # type, l, n, a [],  t [],  p [], g [], c []
+    # condition:
+    # type [], l [], n [], a [],  t [],  p [], g [], c []
+
     import json
 
     condition = LogicHitomi.trim_condition(condition)
@@ -170,7 +176,9 @@ class LogicHitomi:
         return False
 
       try:
-        if key in ['a', 'g', 'c', 'p']: # OR
+        # OR
+        # artists, group, characters, parody
+        if key in ['a', 'g', 'c', 'p']:
 
           tmp = False
           for condition_value in value:
@@ -179,8 +187,21 @@ class LogicHitomi:
               break
           if tmp == False:
             return False
-          
-        elif key in ['t']:  # AND
+        
+        # OR for string
+        # type, language
+        elif key in ['type', 'l']:
+          tmp = False
+          for condition_value in value:
+            if condition_value.strip().lower() == gallery[key].strip().lower():
+              tmp = True
+              break
+          if tmp == False:
+            return False
+
+        # AND
+        # tags
+        elif key in ['t']:
           
           tmp = True
           for gallery_value in gallery[key]:
@@ -190,10 +211,17 @@ class LogicHitomi:
           if tmp == False:
             return False
           
-        else:
-          if gallery[key].strip().lower() not in value:
-            logger.debug("[gallery-dl] No such key %s in value %s", key, value)
+        # SUBSTRING with OR
+        # name
+        elif key in ['n']:
+          tmp = False
+          for search_name in value:
+            if gallery[key].strip().lower().find(search_name) != -1:
+              tmp = True
+              break
+          if tmp == False:
             return False
+        
 
       except Exception as e:
         logger.debug("[gallery-dl] Exception at: %s %s", type(gallery[key]) ,str(gallery[key]))
@@ -209,17 +237,22 @@ class LogicHitomi:
       if gallery[key] is None:
         continue
 
-
-      if key in ['a', 't', 'p', 'g', 'c']:
-
+      for ban_value in value:
         for gallery_value in gallery[key]:
-          for condition_value in value:
-            if condition_value.strip().lower() in gallery_value.strip().lower():
-              return False
+          if ban_value.strip().lower() in gallery_value.strip().lower():
+            return False
 
-      else:
-        if gallery[key].strip().lower() not in value:
-          return False
+      # # AND
+      # # artists, tags, parody, group, characters, 
+      # if key in ['a', 't', 'p', 'g', 'c']:
+
+      #   for gallery_value in gallery[key]:
+      #     for condition_value in value:
+      #       if condition_value.strip().lower() in gallery_value.strip().lower():
+      #         return False
+      # else:
+      #   if gallery[key].strip().lower() not in value:
+      #     return False
 
     return True
 
@@ -303,8 +336,9 @@ class LogicHitomi:
         with open(os.path.join(LogicHitomi.basepath, item)) as galleries:
           json_item = json.loads(galleries.read())
 
-          for idx, gallery in enumerate(json_item):
-            if LogicHitomi.flag == False and scheduler == False:
+          for _, gallery in enumerate(json_item):
+            if ( LogicHitomi.stop == True ) and ( scheduler == False ):
+              galleries.close()
               return ret
             
             try:
@@ -316,6 +350,7 @@ class LogicHitomi:
                 if search == True:
                   from .plugin import send_search_one
                   send_search_one(gallery)
+                
                 if scheduler == True:
                   from logic_queue import LogicQueue
                   import plugin
@@ -367,7 +402,7 @@ class LogicHitomi:
 
   @staticmethod
   def search(arg):
-    LogicHitomi.flag = True
+    LogicHitomi.stop = False
     try:
       condition = {}
       condition['n'] = arg['n'].split('||')
