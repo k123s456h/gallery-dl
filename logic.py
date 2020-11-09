@@ -51,7 +51,7 @@ class Logic(object):
         'b_title': "",
         "b_artist": "",
         "b_group": "",
-        "b_tags": "",
+        "b_tags": "male:males only||female:futanari||incomplete||female:worm||female:guro||male:guro||female:blood||male:blood||female:wormhole||male:wormhole||female:worm",
         "b_type": "",
         "b_character": "",
         "b_language": ""
